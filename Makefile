@@ -18,7 +18,7 @@ $(RESULT): debug-code top
 clean:: nobackup
 
 # ↓もし実装を改造したら、それに合わせて変える
-# デバッグ用 by nekketsuuu
+# デバッグ用追加 by nekketsuuu
 SOURCES = float.c type.ml id.ml m.ml s.ml \
 syntax.ml parser.mly lexer.mll typing.mli typing.ml kNormal.mli kNormal.ml \
 alpha.mli alpha.ml beta.mli beta.ml assoc.mli assoc.ml \
@@ -37,8 +37,8 @@ inprod inprod-rec inprod-loop matmul matmul-flat
 
 do_test: $(TESTS:%=test/%.cmp)
 
-.PRECIOUS: test/%.s test/% test/%.res test/%.ans test/%.cmp
-TRASH = $(TESTS:%=test/%.s) $(TESTS:%=test/%) $(TESTS:%=test/%.res) $(TESTS:%=test/%.ans) $(TESTS:%=test/%.cmp)
+.PRECIOUS: test/%.s test/% test/%.res test/%.ans test/%.cmp test/%.out
+TRASH = $(TESTS:%=test/%.s) $(TESTS:%=test/%) $(TESTS:%=test/%.res) $(TESTS:%=test/%.ans) $(TESTS:%=test/%.cmp) $(TESTS:%=test/%.out)
 
 test/%.s: $(RESULT) test/%.ml
 	./$(RESULT) test/$*
@@ -51,6 +51,15 @@ test/%.ans: test/%.ml
 test/%.cmp: test/%.res test/%.ans
 	diff $^ > $@
 
+# デバッグ用 by nekketsuuu
+# usage: make debug LEVEL=Parser
+LEVEL = Typing
+do_debug: $(TESTS:%=test/%.out)
+
+test/%.out: $(RESULT) test/%.ml
+	./$(RESULT) -debug $(LEVEL) test/$*
+
+# html
 min-caml.html: main.mli main.ml id.ml m.ml s.ml \
 		syntax.ml type.ml parser.mly lexer.mll typing.mli typing.ml kNormal.mli kNormal.ml \
 		alpha.mli alpha.ml beta.mli beta.ml assoc.mli assoc.ml \

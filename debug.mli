@@ -5,6 +5,7 @@ type level =
   | Typing
   | KNormal
   | Alpha
+  | Iter
   | Closure
   | Virtual
   | Simm
