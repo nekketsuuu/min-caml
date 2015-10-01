@@ -54,10 +54,16 @@ test/%.cmp: test/%.res test/%.ans
 # デバッグ用 by nekketsuuu
 # usage: make debug LEVEL=Parser
 LEVEL = Typing
-do_debug: $(TESTS:%=test/%.out)
+
+.PHONY: debug
+debug: del_debug $(TESTS:%=test/%.out)
 
 test/%.out: $(RESULT) test/%.ml
 	./$(RESULT) -debug $(LEVEL) test/$*
+
+.PHONY: del_debug
+del_debug:
+	rm -f test/*.out
 
 # html
 min-caml.html: main.mli main.ml id.ml m.ml s.ml \
