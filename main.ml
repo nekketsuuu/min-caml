@@ -28,7 +28,13 @@ let lexbuf outchan l = (* バッファをコンパイルor途中まで変換してチャンネルへ出力
 			      (Alpha.f
 				 (KNormal.f
 				    (Typing.f (Parser.exp Lexer.token l)))))
-  | Debug.Closure
+  | Debug.Closure ->
+     Debug.prog_emit outchan
+		     (Closure.f
+			(iter !limit
+			      (Alpha.f
+				 (KNormal.f
+				    (Typing.f (Parser.exp Lexer.token l))))))
   | Debug.Virtual
   | Debug.Simm
   | Debug.RegAlloc

@@ -1,14 +1,22 @@
+open Id
 open Syntax
 open KNormal
+open Closure
 
 let margin = 192
-let max_indent = 32
+let max_indent = 48
 
-type fundef_t = St of Syntax.t | Kn of KNormal.t
+type fundef_t   = FdSy of Syntax.t  | FdKn of KNormal.t
+type let_t      = LSy of Syntax.t   | LKn of KNormal.t | LCl of Closure.t
+type lettuple_t = LtSy of Syntax.t  | LtId of Id.t
+type ifop_t     = IoKn of KNormal.t | IoCl of Closure.t
 
 (* id_emit : Id.t -> unit *)
 (* 識別子情報を表示する *)
 let id_emit id = Format.print_string id
+
+(* label_emit : Id.l -> unit *)
+let label_emit (L l) = Format.print_string l
 
 (* type_emit : Type.t -> unit *)
 (* 型情報を1文字で表示する *)
@@ -136,31 +144,7 @@ and parser_iter s =
 	  Format.print_string ")";
 	  Format.close_box ())
       | Syntax.Let ((id, ty), t0, t1) ->
-	 (Format.open_vbox 1;
-	  Format.print_string "(";
-	  (* definition *)
-	  Format.open_box 2;
-	  Format.print_string "Let";
-	  Format.print_space ();
-	  id_emit id;
-	  Format.print_space ();
-	  Format.print_string ":";
-	  Format.print_space ();
-	  type_emit ty;
-	  Format.print_space ();
-	  Format.print_string "=";
-	  Format.print_space ();
-	  parser_iter t0;
-	  Format.close_box ();
-	  Format.print_space ();
-	  (* body *)
-	  Format.open_hbox ();
-	  Format.print_string "in";
-	  Format.print_space ();
-	  parser_iter t1;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ());
+	 let_emit id ty (LSy t0) (LSy t1)
       | Syntax.Var id ->
 	 (Format.print_string "(Var";
 	  Format.print_space ();
@@ -170,7 +154,7 @@ and parser_iter s =
 	 (Format.open_vbox 1;
 	  Format.print_string "(LetRec";
 	  Format.print_space ();
-	  fundef_emit id ty lst (St tb);
+	  fundef_emit id ty lst (FdSy tb);
 	  Format.print_space ();
 	  parser_iter t;
 	  Format.print_string ")";
@@ -188,31 +172,7 @@ and parser_iter s =
 	  parser_list_emit t_list;
 	  Format.print_string ")")
       | Syntax.LetTuple (tuple, t0, t1) ->
-	 (Format.open_vbox 2;
-	  Format.print_string "(";
-	  Format.open_box 2;
-	  Format.print_string "LetTuple";
-	  Format.print_space ();
-	  (* 定義リスト *)
-	  Format.open_box 1;
-	  Format.print_string "(";
-	  id_ty_list_iter tuple;
-	  Format.print_string ")";
-	  Format.close_box ();
-	  Format.print_space ();
-	  Format.print_string "=";
-	  Format.print_space ();
-	  parser_iter t0;
-	  Format.close_box ();
-	  Format.print_space ();
-	  (* body *)
-	  Format.open_hbox ();
-	  Format.print_string "in";
-	  Format.print_space ();
-	  parser_iter t1;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ())
+	 lettuple_emit tuple (LtSy t0) (LSy t1)
       | Syntax.Array (t0, t1) ->
 	 (Format.print_string "[Array";
 	  Format.print_space ();
@@ -234,16 +194,46 @@ and parser_iter s =
     end;
     Format.close_box ()
   end
+(* let_emit : Id.t -> Type.t -> let_t -> let_t -> unit *)
+and let_emit id ty t0 t1 =
+  (Format.open_vbox 1;
+   Format.print_string "(";
+   (* definition *)
+   Format.open_box 2;
+   Format.print_string "Let";
+   Format.print_space ();
+   id_emit id;
+   Format.print_space ();
+   Format.print_string ":";
+   Format.print_space ();
+   type_emit ty;
+   Format.print_space ();
+   Format.print_string "=";
+   Format.print_space ();
+   (match t0 with
+    | LSy tt -> parser_iter tt
+    | LKn tt -> kNormal_iter tt
+    | LCl tt -> closure_iter tt);
+   Format.close_box ();
+   Format.print_space ();
+   (* body *)
+   Format.open_hbox ();
+   Format.print_string "in";
+   Format.print_space ();
+   (match t1 with
+    | LSy tt -> parser_iter tt
+    | LKn tt -> kNormal_iter tt
+    | LCl tt -> closure_iter tt);
+   Format.close_box ();
+   Format.print_string ")";
+   Format.close_box ())
 (* fundef_emit : Id.t -> Type.t -> (Id.t * Type.t) list -> fundef_t -> unit *)
 and fundef_emit id ty lst t =
   (Format.open_vbox 1;
    Format.print_string "{";
    (* name *)
    Format.open_hbox ();
-   Format.print_string "name";
-   Format.print_space ();
-   Format.print_string "=";
-   Format.print_space ();
+   Format.print_string "name = ";
    id_emit id;
    Format.print_space ();
    Format.print_string ":";
@@ -254,10 +244,7 @@ and fundef_emit id ty lst t =
    Format.print_space ();
    (* args *)
    Format.open_hbox ();
-   Format.print_string "args";
-   Format.print_space ();
-   Format.print_string "=";
-   Format.print_space ();
+   Format.print_string "args = ";
    Format.open_box 1;
    Format.print_string "[";
    id_ty_list_iter lst;
@@ -268,14 +255,11 @@ and fundef_emit id ty lst t =
    Format.print_space ();
    (* body *)
    Format.open_box 2;
-   Format.print_string "body";
-   Format.print_space ();
-   Format.print_string "=";
-   Format.print_space ();
+   Format.print_string "body = ";
    Format.open_box 0;
    (match t with
-    | St tt -> parser_iter tt
-    | Kn tt -> kNormal_iter tt);
+    | FdSy tt -> parser_iter tt
+    | FdKn tt -> kNormal_iter tt);
    Format.close_box ();
    Format.close_box ();
    Format.print_string "}";
@@ -287,6 +271,38 @@ and parser_list_emit = function
   | x::xs -> (parser_iter x;
 	      Format.print_space ();
 	      parser_list_emit xs)
+(* lettuple_emit : (Id.t * Type.t) -> lettuple_t -> let_t -> unit *)
+and lettuple_emit tuple t0 t1 =
+  (Format.open_vbox 2;
+   Format.print_string "(";
+   Format.open_box 2;
+   Format.print_string "LetTuple";
+   Format.print_space ();
+   (* タプル *)
+   Format.open_box 1;
+   Format.print_string "(";
+   id_ty_list_iter tuple;
+   Format.print_string ")";
+   Format.close_box ();
+   Format.print_space ();
+   Format.print_string "=";
+   Format.print_space ();
+   (match t0 with
+    | LtSy tt -> parser_iter tt
+    | LtId tt -> id_emit tt);
+   Format.close_box ();
+   Format.print_space ();
+   (* body *)
+   Format.open_hbox ();
+   Format.print_string "in";
+   Format.print_space ();
+   (match t1 with
+    | LSy tt -> parser_iter tt
+    | LKn tt -> kNormal_iter tt
+    | LCl tt -> closure_iter tt);
+   Format.close_box ();
+   Format.print_string ")";
+   Format.close_box ())
 
 (** kNormal_emit関係 *)
 (* kNormal_emit : out_channel -> KNormal.t -> unit *)
@@ -323,69 +339,17 @@ and kNormal_iter s =
       | KNormal.FDiv (id0, id1) ->
 	 parser_iter (Syntax.FDiv (Syntax.Var id0, Syntax.Var id1))
       | KNormal.IfEq (id0, id1, t0, t1) ->
-	 (Format.open_vbox 1;
-	  (* 評価式 *)
-	  Format.open_hbox ();
-	  Format.print_string "(IfEq";
-	  Format.print_space ();
-	  parser_iter (Syntax.Var id0);
-	  Format.print_space ();
-	  parser_iter (Syntax.Var id1);
-	  Format.close_box ();
-	  Format.print_space ();
-	  (* true節、false節 *)
-	  kNormal_iter t0;
-	  Format.print_space ();
-	  kNormal_iter t1;
-	  Format.print_string ")")
+	 ifop_emit "IfEq" id0 id1 (IoKn t0) (IoKn t1)
       | KNormal.IfLE (id0, id1, t0, t1) ->
-	 (Format.open_vbox 1;
-	  (* 評価式 *)
-	  Format.open_hbox ();
-	  Format.print_string "(IfLE";
-	  Format.print_space ();
-	  parser_iter (Syntax.Var id0);
-	  Format.print_space ();
-	  parser_iter (Syntax.Var id1);
-	  Format.close_box ();
-	  Format.print_space ();
-	  (* true節、false節 *)
-	  kNormal_iter t0;
-	  Format.print_space ();
-	  kNormal_iter t1;
-	  Format.print_string ")")
+	 ifop_emit "IfLe" id0 id1 (IoKn t0) (IoKn t1)
       | KNormal.Let ((id, ty), t0, t1) ->
-	 (Format.open_vbox 1;
-	  Format.print_string "(";
-	  (* definition *)
-	  Format.open_box 2;
-	  Format.print_string "Let";
-	  Format.print_space ();
-	  id_emit id;
-	  Format.print_space ();
-	  Format.print_string ":";
-	  Format.print_space ();
-	  type_emit ty;
-	  Format.print_space ();
-	  Format.print_string "=";
-	  Format.print_space ();
-	  kNormal_iter t0;
-	  Format.close_box ();
-	  Format.print_space ();
-	  (* body *)
-	  Format.open_hbox ();
-	  Format.print_string "in";
-	  Format.print_space ();
-	  kNormal_iter t1;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ());
+	 let_emit id ty (LKn t0) (LKn t1)
       | KNormal.Var id -> parser_iter (Syntax.Var id)
       | KNormal.LetRec ({name = (id, ty); args = lst; body = tb}, t) ->
 	 (Format.open_vbox 1;
 	  Format.print_string "(LetRec";
 	  Format.print_space ();
-	  fundef_emit id ty lst (Kn tb);
+	  fundef_emit id ty lst (FdKn tb);
 	  Format.print_space ();
 	  kNormal_iter t;
 	  Format.print_string ")";
@@ -398,31 +362,7 @@ and kNormal_iter s =
 	 parser_iter (Syntax.Tuple
 			(List.rev_map (fun id -> Syntax.Var id) id_lst))
       | KNormal.LetTuple (tuple, id, t) ->
-	 (Format.open_vbox 2;
-	  Format.print_string "(";
-	  Format.open_box 2;
-	  Format.print_string "LetTuple";
-	  Format.print_space ();
-	  (* 定義リスト *)
-	  Format.open_box 1;
-	  Format.print_string "(";
-	  id_ty_list_iter tuple;
-	  Format.print_string ")";
-	  Format.close_box ();
-	  Format.print_space ();
-	  Format.print_string "=";
-	  Format.print_space ();
-	  kNormal_iter (KNormal.Var id);
-	  Format.close_box ();
-	  Format.print_space ();
-	  (* body *)
-	  Format.open_hbox ();
-	  Format.print_string "in";
-	  Format.print_space ();
-	  kNormal_iter t;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ())
+	 lettuple_emit tuple (LtId id) (LKn t)
       | KNormal.Get (id0, id1) ->
 	 parser_iter (Syntax.Get (Syntax.Var id0, Syntax.Var id1))
       | KNormal.Put (id0, id1, id2) ->
@@ -449,6 +389,202 @@ and kNormal_iter s =
     end;
     Format.close_box ()
   end
+(* ifop_emit : string -> Id.t -> Id.t -> ifop_t -> ifop_t -> unit *)
+and ifop_emit name id0 id1 t0 t1 =
+  (Format.open_vbox 1;
+   (* 評価式 *)
+   Format.open_hbox ();
+   Format.print_string ("(" ^ name);
+   Format.print_space ();
+   parser_iter (Syntax.Var id0);
+   Format.print_space ();
+   parser_iter (Syntax.Var id1);
+   Format.close_box ();
+   Format.print_space ();
+   (* true節、false節 *)
+   (match t0 with
+    | IoKn tt -> kNormal_iter tt
+    | IoCl tt -> closure_iter tt);
+   Format.print_space ();
+   (match t1 with
+    | IoKn tt -> kNormal_iter tt
+    | IoCl tt -> closure_iter tt);
+   Format.print_string ")")
+
+
+(** prog_emit関係 *)
+(* prog_emit : out_channel -> Closure.prog -> unit *)
+and prog_emit oc (Prog (fundef_lst, s)) =
+  (Format.set_formatter_out_channel oc;
+   Format.set_margin margin;
+   Format.set_max_indent max_indent;
+   Format.open_vbox 0;
+   fundef_list_emit fundef_lst;
+   Format.print_space ();
+   closure_iter s;
+   Format.print_space ();
+   Format.close_box ();
+   Format.print_flush ())
+(* fundef_list_emit : fundef list -> unit *)
+and fundef_list_emit = function
+    [] -> ()
+  | [fd]    -> cl_fundef_emit fd
+  | fd :: l -> (Format.open_vbox 0;
+		cl_fundef_emit fd;
+		Format.print_space ();
+		fundef_list_emit l;
+		Format.close_box ())
+(* cl_fundef_emit : Closure.fundef -> unit *)
+and cl_fundef_emit {name = (label, ty); args = args; formal_fv = formal_fv; body = t} =
+  (Format.open_vbox 0;
+   Format.print_string "{";
+   (* name *)
+   Format.open_hbox ();
+   Format.print_string "name = ";
+   label_emit label;
+   Format.print_space ();
+   Format.print_string ":";
+   Format.print_space ();
+   type_emit ty;
+   Format.print_string ";";
+   Format.close_box ();
+   Format.print_space ();
+   (* args *)
+   Format.open_hbox ();
+   Format.print_string "args = ";
+   Format.open_box 1;
+   Format.print_string "[";
+   id_ty_list_iter args;
+   Format.print_string "]";
+   Format.close_box ();
+   Format.print_string ";";
+   Format.close_box ();
+   Format.print_space ();
+   (* formal_fv *)
+   Format.open_hbox ();
+   Format.print_string "formal_fv = ";
+   Format.open_box 1;
+   Format.print_string "[";
+   id_ty_list_iter formal_fv;
+   Format.print_string "]";
+   Format.close_box ();
+   Format.print_string ";";
+   Format.close_box ();
+   Format.print_space ();
+   (* body *)
+   Format.open_box 2;
+   Format.print_string "body = ";
+   Format.open_box 0;
+   closure_iter t;
+   Format.close_box ();
+   Format.close_box ();
+   Format.print_string "}";
+   Format.close_box ())
+(* closure_iter : Closure.t -> unit *)
+and closure_iter s =
+  begin
+    Format.open_box 2;
+    begin
+      match s with
+      | Closure.Unit    -> kNormal_iter KNormal.Unit
+      | Closure.Int i   -> kNormal_iter (KNormal.Int i)
+      | Closure.Float f -> kNormal_iter (KNormal.Float f)
+      | Closure.Neg id  -> kNormal_iter (KNormal.Neg id)
+      | Closure.Add (id0, id1)  -> kNormal_iter (KNormal.Add (id0, id1))
+      | Closure.Sub (id0, id1)  -> kNormal_iter (KNormal.Sub (id0, id1))
+      | Closure.FNeg id         -> kNormal_iter (KNormal.FNeg id)
+      | Closure.FAdd (id0, id1) -> kNormal_iter (KNormal.FAdd (id0, id1))
+      | Closure.FSub (id0, id1) -> kNormal_iter (KNormal.FSub (id0, id1))
+      | Closure.FMul (id0, id1) -> kNormal_iter (KNormal.FMul (id0, id1))
+      | Closure.FDiv (id0, id1) -> kNormal_iter (KNormal.FDiv (id0, id1))
+      | Closure.IfEq (id0, id1, t0, t1) ->
+	 ifop_emit "IfEq" id0 id1 (IoCl t0) (IoCl t1)
+      | Closure.IfLE (id0, id1, t0, t1) ->
+	 ifop_emit "IfLE" id0 id1 (IoCl t0) (IoCl t1)
+      | Closure.Let ((id, ty), t0, t1) ->
+	 let_emit id ty (LCl t0) (LCl t1)
+      | Closure.Var id -> kNormal_iter (KNormal.Var id)
+      | Closure.MakeCls ((id, ty), cl, t) ->
+	  (Format.open_vbox 1;
+	   Format.print_string "(MakeCls";
+	   Format.print_space ();
+	   Format.open_hbox ();
+	   id_emit id;
+	   Format.print_space ();
+	   type_emit ty;
+	   Format.close_box ();
+	   Format.print_space ();
+	   cl_emit cl;
+	   Format.print_space ();
+	   closure_iter t;
+	   Format.print_string ")";
+	   Format.close_box ())
+      | Closure.AppCls (id0, id1_lst) ->
+	  (Format.print_string "(AppCls";
+	   Format.print_space ();
+	   (* 識別子 *)
+	   Format.open_box 2;
+	   Format.print_string "(Var";
+	   Format.print_space ();
+	   id_emit id0;
+	   Format.print_string ")";
+	   Format.close_box ();
+	   Format.print_space ();
+	   (* 引数 *)
+	   parser_list_emit (List.rev_map (fun id -> Syntax.Var id) id1_lst);
+	   Format.print_string ")")
+      | Closure.AppDir (label, id_lst) ->
+	  (Format.print_string "(AppCls";
+	   Format.print_space ();
+	   (* 識別子 *)
+	   Format.open_box 2;
+	   Format.print_string "(Var";
+	   Format.print_space ();
+	   label_emit label;
+	   Format.print_string ")";
+	   Format.close_box ();
+	   Format.print_space ();
+	   (* 引数 *)
+	   parser_list_emit (List.rev_map (fun id -> Syntax.Var id) id_lst);
+	   Format.print_string ")")
+      | Closure.Tuple tuple -> kNormal_iter (KNormal.Tuple tuple)
+      | Closure.LetTuple (tuple, id, t) ->
+	 lettuple_emit tuple (LtId id) (LCl t)
+      | Closure.Get (id0, id1)      -> kNormal_iter (KNormal.Get (id0, id1))
+      | Closure.Put (id0, id1, id2) -> kNormal_iter (KNormal.Put (id0, id1, id2))
+      | Closure.ExtArray label ->
+	 (Format.print_string "(ExtArray";
+	  Format.print_space ();
+	  label_emit label;
+	  Format.print_string ")")
+    end;
+    Format.close_box ()
+  end
+(* cl_emit : Closure.closure -> unit *)
+(* NB. not closure_emit *)
+and cl_emit {entry = label; actual_fv = id_lst} =
+  (Format.open_box 1;
+   Format.print_string "(MakeCls";
+   Format.print_space ();
+   Format.print_string "{entry = ";
+   label_emit label;
+   Format.print_string ";";
+   Format.print_space ();
+   Format.print_string "actual_fv = ";
+   Format.open_box 1;
+   Format.print_string "[";
+   id_list_iter id_lst;
+   Format.print_string "]";
+   Format.close_box ();
+   Format.print_string "}";
+   Format.close_box ())
+(* id_list_iter : Id.t list -> unit *)
+and id_list_iter = function
+    [] -> ()
+  | [id]    -> Format.print_string id
+  | id :: l -> (Format.print_string "id";
+		Format.print_space ();
+		id_list_iter l)
 
 (** main.ml用の情報 *)
 type level = (* どの段階でデバッグ出力するかを管理する型 *)
