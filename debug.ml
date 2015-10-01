@@ -4,6 +4,8 @@ open KNormal
 let margin = 192
 let max_indent = 32
 
+type fundef_t = St of Syntax.t | Kn of KNormal.t
+
 (* id_emit : Id.t -> unit *)
 (* 識別子情報を表示する *)
 let id_emit id = Format.print_string id
@@ -62,6 +64,24 @@ let rec parser_emit oc s =
    Format.print_space ();
    Format.close_box ();
    Format.print_flush ())
+and parser_monop_emit name t =
+  (Format.open_box 0;
+   Format.print_string ("(" ^ name);
+   Format.print_space ();
+   parser_iter t;
+   Format.print_string ")";
+   Format.close_box ())
+and parser_binop_emit name t0 t1 =
+  (Format.open_box 1;
+   Format.print_string ("(" ^ name);
+   Format.print_space ();
+   Format.open_box 0;
+   parser_iter t0;
+   Format.print_space ();
+   parser_iter t1;
+   Format.close_box ();
+   Format.print_string ")";
+   Format.close_box ())
 (* parsr_iter : Syntax.t -> unit *)
 and parser_iter s =
   begin
@@ -91,115 +111,17 @@ and parser_iter s =
 	  Format.print_float f;
 	  Format.print_string ")";
 	  Format.close_box ())
-      | Syntax.Not t ->
-	 (Format.open_hbox ();
-	  Format.print_string "(Not";
-	  Format.print_space ();
-	  parser_iter t;
-	  Format.print_string ")";
-	  Format.close_box ())
-      | Syntax.Neg t ->
-	 (Format.open_hbox ();
-	  Format.print_string "(Neg";
-	  Format.print_space ();
-	  parser_iter t;
-	  Format.print_string ")";
-	  Format.close_box ())
-      | Syntax.Add (t0, t1) ->
-	 (Format.open_hbox ();
-	  Format.print_string "(Add";
-	  Format.print_space ();
-	  Format.open_box 0;
-	  parser_iter t0;
-	  Format.print_space ();
-	  parser_iter t1;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ())
-      | Syntax.Sub (t0, t1) ->
-	 (Format.open_hbox ();
-	  Format.print_string "(Sub";
-	  Format.print_space ();
-	  Format.open_box 0;
-	  parser_iter t0;
-	  Format.print_space ();
-	  parser_iter t1;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ())
-      | Syntax.FNeg t ->
-	 (Format.open_hbox ();
-	  Format.print_string "(FNeg";
-	  Format.print_space ();
-	  parser_iter t;
-	  Format.print_string ")";
-	  Format.close_box ())
-      | Syntax.FAdd (t0, t1) ->
-	 (Format.open_hbox ();
-	  Format.print_string "(FAdd";
-	  Format.print_space ();
-	  Format.open_box 0;
-	  parser_iter t0;
-	  Format.print_space ();
-	  parser_iter t1;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ())
-      | Syntax.FSub (t0, t1) ->
-	 (Format.open_hbox ();
-	  Format.print_string "(FSub";
-	  Format.print_space ();
-	  Format.open_box 0;
-	  parser_iter t0;
-	  Format.print_space ();
-	  parser_iter t1;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ())
-      | Syntax.FMul (t0, t1) ->
-	 (Format.open_hbox ();
-	  Format.print_string "(FMul";
-	  Format.print_space ();
-	  Format.open_box 0;
-	  parser_iter t0;
-	  Format.print_space ();
-	  parser_iter t1;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ())
-      | Syntax.FDiv (t0, t1) ->
-	 (Format.open_hbox ();
-	  Format.print_string "(FDiv";
-	  Format.print_space ();
-	  Format.open_box 0;
-	  parser_iter t0;
-	  Format.print_space ();
-	  parser_iter t1;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ())
-      | Syntax.Eq (t0, t1) ->
-	 (Format.open_hbox ();
-	  Format.print_string "(Eq";
-	  Format.print_space ();
-	  Format.open_box 0;
-	  parser_iter t0;
-	  Format.print_space ();
-	  parser_iter t1;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ())
-      | Syntax.LE (t0, t1) ->
-	 (Format.open_hbox ();
-	  Format.print_string "(LE";
-	  Format.print_space ();
-	  Format.open_box 0;
-	  parser_iter t0;
-	  Format.print_space ();
-	  parser_iter t1;
-	  Format.close_box ();
-	  Format.print_string ")";
-	  Format.close_box ())
+      | Syntax.Not t -> parser_monop_emit "Not" t
+      | Syntax.Neg t -> parser_monop_emit "Neg" t
+      | Syntax.Add (t0, t1)  -> parser_binop_emit "Add" t0 t1
+      | Syntax.Sub (t0, t1)  -> parser_binop_emit "Sub" t0 t1
+      | Syntax.FNeg t        -> parser_monop_emit "FNeg" t
+      | Syntax.FAdd (t0, t1) -> parser_binop_emit "Fadd" t0 t1
+      | Syntax.FSub (t0, t1) -> parser_binop_emit "FSub" t0 t1
+      | Syntax.FMul (t0, t1) -> parser_binop_emit "FMul" t0 t1
+      | Syntax.FDiv (t0, t1) -> parser_binop_emit "FDib" t0 t1
+      | Syntax.Eq (t0, t1)   -> parser_binop_emit "Eq" t0 t1
+      | Syntax.LE (t0, t1)   -> parser_binop_emit "LE" t0 t1
       | Syntax.If (t0, t1, t2) ->
 	 (Format.open_hbox ();
 	  Format.print_string "(If";
@@ -244,11 +166,11 @@ and parser_iter s =
 	  Format.print_space ();
 	  id_emit id;
 	  Format.print_string ")")
-      | Syntax.LetRec (fd, t) ->
-	 (Format.open_vbox 2;
+      | Syntax.LetRec ({name = (id, ty); args = lst; body = tb}, t) ->
+	 (Format.open_vbox 1;
 	  Format.print_string "(LetRec";
 	  Format.print_space ();
-	  syntax_fundef_emit fd;
+	  fundef_emit id ty lst (St tb);
 	  Format.print_space ();
 	  parser_iter t;
 	  Format.print_string ")";
@@ -299,13 +221,7 @@ and parser_iter s =
 	  Format.print_space ();
 	  parser_iter t1;
 	  Format.print_string "]")
-      | Syntax.Get (t0, t1) ->
-	 (Format.print_string "(Get";
-	  Format.print_space ();
-	  parser_iter t0;
-	  Format.print_space ();
-	  parser_iter t1;
-	  Format.print_string ")")
+      | Syntax.Get (t0, t1) -> parser_binop_emit "Get" t0 t1
       | Syntax.Put (t0, t1, t2) ->
 	 (Format.print_string "(Put";
 	  Format.print_space ();
@@ -318,8 +234,8 @@ and parser_iter s =
     end;
     Format.close_box ()
   end
-(* syntax_fundef_emit : Syntax.fundef -> unit *)
-and syntax_fundef_emit { name = (id, ty); args = lst; body = t } =
+(* fundef_emit : Id.t -> Type.t -> (Id.t * Type.t) list -> fundef_t -> unit *)
+and fundef_emit id ty lst t =
   (Format.open_vbox 1;
    Format.print_string "{";
    (* name *)
@@ -357,7 +273,9 @@ and syntax_fundef_emit { name = (id, ty); args = lst; body = t } =
    Format.print_string "=";
    Format.print_space ();
    Format.open_box 0;
-   parser_iter t;
+   (match t with
+    | St tt -> parser_iter tt
+    | Kn tt -> kNormal_iter tt);
    Format.close_box ();
    Format.close_box ();
    Format.print_string "}";
@@ -463,11 +381,11 @@ and kNormal_iter s =
 	  Format.print_string ")";
 	  Format.close_box ());
       | KNormal.Var id -> parser_iter (Syntax.Var id)
-      | KNormal.LetRec (fd, t) ->
-	 (Format.open_vbox 2;
+      | KNormal.LetRec ({name = (id, ty); args = lst; body = tb}, t) ->
+	 (Format.open_vbox 1;
 	  Format.print_string "(LetRec";
 	  Format.print_space ();
-	  kNormal_fundef_emit fd;
+	  fundef_emit id ty lst (Kn tb);
 	  Format.print_space ();
 	  kNormal_iter t;
 	  Format.print_string ")";
@@ -531,52 +449,6 @@ and kNormal_iter s =
     end;
     Format.close_box ()
   end
-
-(* kNormal_fundef_emit : Syntax.fundef -> unit *)
-(* 後でリファクタリングする *)
-and kNormal_fundef_emit { name = (id, ty); args = lst; body = t } =
-  (Format.open_vbox 1;
-   Format.print_string "{";
-   (* name *)
-   Format.open_hbox ();
-   Format.print_string "name";
-   Format.print_space ();
-   Format.print_string "=";
-   Format.print_space ();
-   id_emit id;
-   Format.print_space ();
-   Format.print_string ":";
-   Format.print_space ();
-   type_emit ty;
-   Format.print_string ";";
-   Format.close_box ();
-   Format.print_space ();
-   (* args *)
-   Format.open_hbox ();
-   Format.print_string "args";
-   Format.print_space ();
-   Format.print_string "=";
-   Format.print_space ();
-   Format.open_box 1;
-   Format.print_string "[";
-   id_ty_list_iter lst;
-   Format.print_string "]";
-   Format.close_box ();
-   Format.print_string ";";
-   Format.close_box ();
-   Format.print_space ();
-   (* body *)
-   Format.open_box 2;
-   Format.print_string "body";
-   Format.print_space ();
-   Format.print_string "=";
-   Format.print_space ();
-   Format.open_box 0;
-   kNormal_iter t;
-   Format.close_box ();
-   Format.close_box ();
-   Format.print_string "}";
-   Format.close_box ())
 
 (** main.ml用の情報 *)
 type level = (* どの段階でデバッグ出力するかを管理する型 *)
