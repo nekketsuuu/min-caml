@@ -1,4 +1,5 @@
 let limit = ref 1000
+let debug_level = ref Debug.Emit
 
 let rec iter n e = (* 最適化処理をくりかえす (caml2html: main_iter) *)
   Format.eprintf "iteration %d@." n;
@@ -7,25 +8,39 @@ let rec iter n e = (* 最適化処理をくりかえす (caml2html: main_iter) *)
   if e = e' then e else
   iter (n - 1) e'
 
-let lexbuf outchan l = (* バッファをコンパイルしてチャンネルへ出力する (caml2html: main_lexbuf) *)
+let lexbuf outchan l = (* バッファをコンパイルor途中まで変換してチャンネルへ出力する *)
   Id.counter := 0;
   Typing.extenv := M.empty;
-  Emit.f outchan
-    (RegAlloc.f
-       (Simm.f
-	  (Virtual.f
-	     (Closure.f
-		(iter !limit
-		   (Alpha.f
-		      (KNormal.f
-			 (Typing.f
-			    (Parser.exp Lexer.token l)))))))))
+  match !debug_level with
+  | Debug.Parser ->
+     Debug.parser_emit outchan (Parser.exp Lexer.token l)
+  | Debug.Typing ->
+     Debug.parser_emit outchan (Typing.f (Parser.exp Lexer.token l))
+  | Debug.KNormal  
+  | Debug.Alpha    
+  | Debug.Closure  
+  | Debug.Virtual  
+  | Debug.Simm     
+  | Debug.RegAlloc 
+  | Debug.Emit ->
+     Emit.f outchan
+	    (RegAlloc.f
+	       (Simm.f
+		  (Virtual.f
+		     (Closure.f
+			(iter !limit
+			      (Alpha.f
+				 (KNormal.f
+				    (Typing.f
+				       (Parser.exp Lexer.token l)))))))))
 
 let string s = lexbuf stdout (Lexing.from_string s) (* 文字列をコンパイルして標準出力に表示する (caml2html: main_string) *)
 
 let file f = (* ファイルをコンパイルしてファイルに出力する (caml2html: main_file) *)
   let inchan = open_in (f ^ ".ml") in
-  let outchan = open_out (f ^ ".s") in
+  let outchan = (match !debug_level with
+		 | Debug.Emit -> open_out (f ^ ".s")
+		 | _          -> open_out (f ^ ".out")) in
   try
     lexbuf outchan (Lexing.from_channel inchan);
     close_in inchan;
@@ -36,7 +51,8 @@ let () = (* ここからコンパイラの実行が開始される (caml2html: main_entry) *)
   let files = ref [] in
   Arg.parse
     [("-inline", Arg.Int(fun i -> Inline.threshold := i), "maximum size of functions inlined");
-     ("-iter", Arg.Int(fun i -> limit := i), "maximum number of optimizations iterated")]
+     ("-iter", Arg.Int(fun i -> limit := i), "maximum number of optimizations iterated");
+     ("-debug", Arg.String(fun s -> debug_level := Debug.level_of_string s), "output level for debugging")]
     (fun s -> files := !files @ [s])
     ("Mitou Min-Caml Compiler (C) Eijiro Sumii\n" ^
      Printf.sprintf "usage: %s [-inline m] [-iter n] ...filenames without \".ml\"..." Sys.argv.(0));
