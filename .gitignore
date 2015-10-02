@@ -1,7 +1,6 @@
 # Symbolic link to architecture-specific files
 /asm.ml
 /asm.mli
-/debugAsm.ml
 /emit.ml
 /libmincaml.S
 /regAlloc.ml
