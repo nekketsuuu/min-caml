@@ -16,7 +16,7 @@ type ifop_t     = IoKn of KNormal.t | IoCl of Closure.t
 let id_emit id = Format.print_string id
 
 (* label_emit : Id.l -> unit *)
-let label_emit (L l) = Format.print_string l
+let label_emit (Id.L l) = Format.print_string l
 
 (* type_emit : Type.t -> unit *)
 (* 型情報を1文字で表示する *)
@@ -34,7 +34,9 @@ let rec type_emit = function
 		      | Some t -> type_emit t);
 		     Format.print_string "}")
 
-(** parser_emit用の関数 *)
+(* 
+ * parser_emit用の関数
+ *)
 (* id_ty_list_iter : (Id.t * Type.t) list -> unit *)
 let rec id_ty_list_iter = function
     [] -> ()
@@ -59,7 +61,9 @@ let rec id_ty_list_iter = function
 		      Format.print_space ();
 		      id_ty_list_iter l)
 
-(** parser_emit関係 *)
+(* 
+ * parser_emit関係
+ *)
 (* parser_emit : out_channel -> Syntax.t -> unit *)
 (* pretty printer of Syntax.t *)
 (* NB. Only this function changes out_channel to emitting Parser.t *)
@@ -304,7 +308,9 @@ and lettuple_emit tuple t0 t1 =
    Format.print_string ")";
    Format.close_box ())
 
-(** kNormal_emit関係 *)
+(*
+ *  kNormal_emit関係
+ *)
 (* kNormal_emit : out_channel -> KNormal.t -> unit *)
 and kNormal_emit oc s =
   (Format.set_formatter_out_channel oc;
@@ -411,10 +417,11 @@ and ifop_emit name id0 id1 t0 t1 =
     | IoCl tt -> closure_iter tt);
    Format.print_string ")")
 
-
-(** prog_emit関係 *)
-(* prog_emit : out_channel -> Closure.prog -> unit *)
-and prog_emit oc (Prog (fundef_lst, s)) =
+(*
+ * closure_prog_emit関係
+ *)
+(* closure_prog_emit : out_channel -> Closure.prog -> unit *)
+and closure_prog_emit oc (Prog (fundef_lst, s)) =
   (Format.set_formatter_out_channel oc;
    Format.set_margin margin;
    Format.set_max_indent max_indent;
@@ -582,11 +589,13 @@ and cl_emit {entry = label; actual_fv = id_lst} =
 and id_list_iter = function
     [] -> ()
   | [id]    -> Format.print_string id
-  | id :: l -> (Format.print_string "id";
+  | id :: l -> (Format.print_string id;
 		Format.print_space ();
 		id_list_iter l)
 
-(** main.ml用の情報 *)
+(* 
+ * main.ml用の情報
+ *)
 type level = (* どの段階でデバッグ出力するかを管理する型 *)
   | Parser
   | Typing
