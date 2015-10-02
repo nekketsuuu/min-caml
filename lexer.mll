@@ -5,83 +5,86 @@ open Type
 }
 
 (* 正規表現の略記 *)
-let space = [' ' '\t' '\n' '\r']
+let space = [' ' '\t' '\r']
 let digit = ['0'-'9']
 let lower = ['a'-'z']
 let upper = ['A'-'Z']
 
 rule token = parse
+| '\n'
+    { Lexing.new_line lexbuf;
+      token lexbuf }
 | space+
     { token lexbuf }
 | "(*"
     { comment lexbuf; (* ネストしたコメントのためのトリック *)
       token lexbuf }
 | '('
-    { LPAREN }
+    { LPAREN(lexbuf.Lexing.lex_curr_p) }
 | ')'
-    { RPAREN }
+    { RPAREN(lexbuf.Lexing.lex_curr_p) }
 | "true"
-    { BOOL(true) }
+    { BOOL(true, lexbuf.Lexing.lex_curr_p) }
 | "false"
-    { BOOL(false) }
+    { BOOL(false, lexbuf.Lexing.lex_curr_p) }
 | "not"
-    { NOT }
+    { NOT(lexbuf.Lexing.lex_curr_p) }
 | digit+ (* 整数を字句解析するルール (caml2html: lexer_int) *)
-    { INT(int_of_string (Lexing.lexeme lexbuf)) }
+    { INT(int_of_string (Lexing.lexeme lexbuf), lexbuf.Lexing.lex_curr_p) }
 | digit+ ('.' digit*)? (['e' 'E'] ['+' '-']? digit+)?
-    { FLOAT(float_of_string (Lexing.lexeme lexbuf)) }
+    { FLOAT(float_of_string (Lexing.lexeme lexbuf), lexbuf.Lexing.lex_curr_p) }
 | '-' (* -.より後回しにしなくても良い? 最長一致? *)
-    { MINUS }
+    { MINUS(lexbuf.Lexing.lex_curr_p) }
 | '+' (* +.より後回しにしなくても良い? 最長一致? *)
-    { PLUS }
+    { PLUS(lexbuf.Lexing.lex_curr_p) }
 | "-."
-    { MINUS_DOT }
+    { MINUS_DOT(lexbuf.Lexing.lex_curr_p) }
 | "+."
-    { PLUS_DOT }
+    { PLUS_DOT(lexbuf.Lexing.lex_curr_p) }
 | "*."
-    { AST_DOT }
+    { AST_DOT(lexbuf.Lexing.lex_curr_p) }
 | "/."
-    { SLASH_DOT }
+    { SLASH_DOT(lexbuf.Lexing.lex_curr_p) }
 | '='
-    { EQUAL }
+    { EQUAL(lexbuf.Lexing.lex_curr_p) }
 | "<>"
-    { LESS_GREATER }
+    { LESS_GREATER(lexbuf.Lexing.lex_curr_p) }
 | "<="
-    { LESS_EQUAL }
+    { LESS_EQUAL(lexbuf.Lexing.lex_curr_p) }
 | ">="
-    { GREATER_EQUAL }
+    { GREATER_EQUAL(lexbuf.Lexing.lex_curr_p) }
 | '<'
-    { LESS }
+    { LESS(lexbuf.Lexing.lex_curr_p) }
 | '>'
-    { GREATER }
+    { GREATER(lexbuf.Lexing.lex_curr_p) }
 | "if"
-    { IF }
+    { IF(lexbuf.Lexing.lex_curr_p) }
 | "then"
-    { THEN }
+    { THEN(lexbuf.Lexing.lex_curr_p) }
 | "else"
-    { ELSE }
+    { ELSE(lexbuf.Lexing.lex_curr_p) }
 | "let"
-    { LET }
+    { LET(lexbuf.Lexing.lex_curr_p) }
 | "in"
-    { IN }
+    { IN(lexbuf.Lexing.lex_curr_p) }
 | "rec"
-    { REC }
+    { REC(lexbuf.Lexing.lex_curr_p) }
 | ','
-    { COMMA }
+    { COMMA(lexbuf.Lexing.lex_curr_p) }
 | '_'
-    { IDENT(Id.gentmp Type.Unit) }
+    { IDENT(Id.gentmp Type.Unit, lexbuf.Lexing.lex_curr_p) }
 | "Array.create" (* [XX] ad hoc *)
-    { ARRAY_CREATE }
+    { ARRAY_CREATE(lexbuf.Lexing.lex_curr_p) }
 | '.'
-    { DOT }
+    { DOT(lexbuf.Lexing.lex_curr_p) }
 | "<-"
-    { LESS_MINUS }
+    { LESS_MINUS(lexbuf.Lexing.lex_curr_p) }
 | ';'
-    { SEMICOLON }
+    { SEMICOLON(lexbuf.Lexing.lex_curr_p) }
 | eof
-    { EOF }
+    { EOF(lexbuf.Lexing.lex_curr_p) }
 | lower (digit|lower|upper|'_')* (* 他の「予約語」より後でないといけない *)
-    { IDENT(Lexing.lexeme lexbuf) }
+    { IDENT(Lexing.lexeme lexbuf, lexbuf.Lexing.lex_curr_p) }
 | _
     { failwith
 	(Printf.sprintf "unknown token %s near characters %d-%d"

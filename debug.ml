@@ -100,41 +100,41 @@ and parser_iter s =
     Format.open_box 2;
     begin
       match s with
-      | Syntax.Unit ->
+      | Syntax.Unit _ ->
 	 Format.print_string "Unit"
-      | Syntax.Bool b ->
+      | Syntax.Bool (b, _) ->
 	 (Format.open_hbox ();
 	  Format.print_string "(Bool";
 	  Format.print_space ();
 	  Format.print_bool b;
 	  Format.print_string ")";
 	  Format.close_box ())
-      | Syntax.Int i ->
+      | Syntax.Int (i, _) ->
 	 (Format.open_hbox ();
 	  Format.print_string "(Int";
 	  Format.print_space ();
 	  Format.print_int i;
 	  Format.print_string ")";
 	  Format.close_box ())
-      | Syntax.Float f ->
+      | Syntax.Float (f, _) ->
 	 (Format.open_hbox ();
 	  Format.print_string "(Float";
 	  Format.print_space ();
 	  Format.print_float f;
 	  Format.print_string ")";
 	  Format.close_box ())
-      | Syntax.Not t -> parser_monop_emit "Not" t
-      | Syntax.Neg t -> parser_monop_emit "Neg" t
-      | Syntax.Add (t0, t1)  -> parser_binop_emit "Add" t0 t1
-      | Syntax.Sub (t0, t1)  -> parser_binop_emit "Sub" t0 t1
-      | Syntax.FNeg t        -> parser_monop_emit "FNeg" t
-      | Syntax.FAdd (t0, t1) -> parser_binop_emit "Fadd" t0 t1
-      | Syntax.FSub (t0, t1) -> parser_binop_emit "FSub" t0 t1
-      | Syntax.FMul (t0, t1) -> parser_binop_emit "FMul" t0 t1
-      | Syntax.FDiv (t0, t1) -> parser_binop_emit "FDib" t0 t1
-      | Syntax.Eq (t0, t1)   -> parser_binop_emit "Eq" t0 t1
-      | Syntax.LE (t0, t1)   -> parser_binop_emit "LE" t0 t1
-      | Syntax.If (t0, t1, t2) ->
+      | Syntax.Not (t, _) -> parser_monop_emit "Not" t
+      | Syntax.Neg (t, _) -> parser_monop_emit "Neg" t
+      | Syntax.Add (t0, t1, _)  -> parser_binop_emit "Add" t0 t1
+      | Syntax.Sub (t0, t1, _)  -> parser_binop_emit "Sub" t0 t1
+      | Syntax.FNeg (t, _)      -> parser_monop_emit "FNeg" t
+      | Syntax.FAdd (t0, t1, _) -> parser_binop_emit "Fadd" t0 t1
+      | Syntax.FSub (t0, t1, _) -> parser_binop_emit "FSub" t0 t1
+      | Syntax.FMul (t0, t1, _) -> parser_binop_emit "FMul" t0 t1
+      | Syntax.FDiv (t0, t1, _) -> parser_binop_emit "FDib" t0 t1
+      | Syntax.Eq (t0, t1, _)   -> parser_binop_emit "Eq" t0 t1
+      | Syntax.LE (t0, t1, _)   -> parser_binop_emit "LE" t0 t1
+      | Syntax.If (t0, t1, t2, _) ->
 	 (Format.open_hbox ();
 	  Format.print_string "(If";
 	  Format.print_space ();
@@ -147,14 +147,14 @@ and parser_iter s =
 	  Format.close_box ();
 	  Format.print_string ")";
 	  Format.close_box ())
-      | Syntax.Let ((id, ty), t0, t1) ->
-	 let_emit id ty (LSy t0) (LSy t1)
-      | Syntax.Var id ->
+      | Syntax.Let ((id, ty), t0, t1, p) ->
+	 let_emit id ty (LSy t0) (LSy t1) p
+      | Syntax.Var (id, _) ->
 	 (Format.print_string "(Var";
 	  Format.print_space ();
 	  id_emit id;
 	  Format.print_string ")")
-      | Syntax.LetRec ({name = (id, ty); args = lst; body = tb}, t) ->
+      | Syntax.LetRec ({name = (id, ty); args = lst; body = tb}, t, _) ->
 	 (Format.open_vbox 1;
 	  Format.print_string "(LetRec";
 	  Format.print_space ();
@@ -163,21 +163,21 @@ and parser_iter s =
 	  parser_iter t;
 	  Format.print_string ")";
 	  Format.close_box ())
-      | Syntax.App (t0, t1_list) ->
+      | Syntax.App (t0, t1_list, _) ->
 	 (Format.print_string "(App";
 	  Format.print_space ();
 	  parser_iter t0;
 	  Format.print_space ();
 	  parser_list_emit t1_list;
 	  Format.print_string ")")
-      | Syntax.Tuple t_list ->
+      | Syntax.Tuple (t_list, _) ->
 	 (Format.print_string "(Tuple";
 	  Format.print_space ();
 	  parser_list_emit t_list;
 	  Format.print_string ")")
-      | Syntax.LetTuple (tuple, t0, t1) ->
-	 lettuple_emit tuple (LtSy t0) (LSy t1)
-      | Syntax.Array (t0, t1) ->
+      | Syntax.LetTuple (tuple, t0, t1, p) ->
+	 lettuple_emit tuple (LtSy t0) (LSy t1) p
+      | Syntax.Array (t0, t1, _) ->
 	 (Format.print_string "[Array";
 	  Format.print_space ();
 	  parser_iter t0;
@@ -185,8 +185,8 @@ and parser_iter s =
 	  Format.print_space ();
 	  parser_iter t1;
 	  Format.print_string "]")
-      | Syntax.Get (t0, t1) -> parser_binop_emit "Get" t0 t1
-      | Syntax.Put (t0, t1, t2) ->
+      | Syntax.Get (t0, t1, _) -> parser_binop_emit "Get" t0 t1
+      | Syntax.Put (t0, t1, t2, _) ->
 	 (Format.print_string "(Put";
 	  Format.print_space ();
 	  parser_iter t0;
@@ -199,7 +199,7 @@ and parser_iter s =
     Format.close_box ()
   end
 (* let_emit : Id.t -> Type.t -> let_t -> let_t -> unit *)
-and let_emit id ty t0 t1 =
+and let_emit id ty t0 t1 p =
   (Format.open_vbox 1;
    Format.print_string "(";
    (* definition *)
@@ -232,7 +232,7 @@ and let_emit id ty t0 t1 =
    Format.print_string ")";
    Format.close_box ())
 (* fundef_emit : Id.t -> Type.t -> (Id.t * Type.t) list -> fundef_t -> unit *)
-and fundef_emit id ty lst t =
+and fundef_emit id ty lst t p =
   (Format.open_vbox 1;
    Format.print_string "{";
    (* name *)
@@ -276,7 +276,7 @@ and parser_list_emit = function
 	      Format.print_space ();
 	      parser_list_emit xs)
 (* lettuple_emit : (Id.t * Type.t) -> lettuple_t -> let_t -> unit *)
-and lettuple_emit tuple t0 t1 =
+and lettuple_emit tuple t0 t1 p =
   (Format.open_vbox 2;
    Format.print_string "(";
    Format.open_box 2;
@@ -327,59 +327,60 @@ and kNormal_iter s =
     Format.open_box 2;
     begin
       match s with
-      | KNormal.Unit    -> parser_iter Syntax.Unit
-      | KNormal.Int i   -> parser_iter (Syntax.Int i)
-      | KNormal.Float f -> parser_iter (Syntax.Float f)
-      | KNormal.Neg id  -> parser_iter (Syntax.Var id)
-      | KNormal.Add (id0, id1) ->
-	 parser_iter (Syntax.Add (Syntax.Var id0, Syntax.Var id1))
-      | KNormal.Sub (id0, id1) ->
-	 parser_iter (Syntax.Sub (Syntax.Var id0, Syntax.Var id1))
-      | KNormal.FNeg id -> parser_iter (Syntax.Var id)
-      | KNormal.FAdd (id0, id1) ->
-	 parser_iter (Syntax.FAdd (Syntax.Var id0, Syntax.Var id1))
-      | KNormal.FSub (id0, id1) ->
-	 parser_iter (Syntax.FSub (Syntax.Var id0, Syntax.Var id1))
-      | KNormal.FMul (id0, id1) ->
-	 parser_iter (Syntax.FMul (Syntax.Var id0, Syntax.Var id1))
-      | KNormal.FDiv (id0, id1) ->
-	 parser_iter (Syntax.FDiv (Syntax.Var id0, Syntax.Var id1))
-      | KNormal.IfEq (id0, id1, t0, t1) ->
-	 ifop_emit "IfEq" id0 id1 (IoKn t0) (IoKn t1)
-      | KNormal.IfLE (id0, id1, t0, t1) ->
-	 ifop_emit "IfLe" id0 id1 (IoKn t0) (IoKn t1)
-      | KNormal.Let ((id, ty), t0, t1) ->
-	 let_emit id ty (LKn t0) (LKn t1)
-      | KNormal.Var id -> parser_iter (Syntax.Var id)
-      | KNormal.LetRec ({name = (id, ty); args = lst; body = tb}, t) ->
+      | KNormal.Unit p       -> parser_iter (Syntax.Unit p)
+      | KNormal.Int (i, p)   -> parser_iter (Syntax.Int (i, p))
+      | KNormal.Float (f, p) -> parser_iter (Syntax.Float (f, p))
+      | KNormal.Neg (id, p)  -> parser_iter (Syntax.Var (id, p))
+      | KNormal.Add (id0, id1, p) ->
+	 parser_iter (Syntax.Add (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
+      | KNormal.Sub (id0, id1, p) ->
+	 parser_iter (Syntax.Sub (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
+      | KNormal.FNeg (id, p) -> parser_iter (Syntax.Var (id, p))
+      | KNormal.FAdd (id0, id1, p) ->
+	 parser_iter (Syntax.FAdd (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
+      | KNormal.FSub (id0, id1, p) ->
+	 parser_iter (Syntax.FSub (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
+      | KNormal.FMul (id0, id1, p) ->
+	 parser_iter (Syntax.FMul (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
+      | KNormal.FDiv (id0, id1, p) ->
+	 parser_iter (Syntax.FDiv (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
+      | KNormal.IfEq (id0, id1, t0, t1, p) ->
+	 ifop_emit "IfEq" id0 id1 (IoKn t0) (IoKn t1) p
+      | KNormal.IfLE (id0, id1, t0, t1, p) ->
+	 ifop_emit "IfLe" id0 id1 (IoKn t0) (IoKn t1) p
+      | KNormal.Let ((id, ty), t0, t1, p) ->
+	 let_emit id ty (LKn t0) (LKn t1) p
+      | KNormal.Var (id, p) -> parser_iter (Syntax.Var (id, p))
+      | KNormal.LetRec ({name = (id, ty); args = lst; body = tb}, t, p) ->
 	 (Format.open_vbox 1;
 	  Format.print_string "(LetRec";
 	  Format.print_space ();
-	  fundef_emit id ty lst (FdKn tb);
+	  fundef_emit id ty lst (FdKn tb) p;
 	  Format.print_space ();
 	  kNormal_iter t;
 	  Format.print_string ")";
 	  Format.close_box ())
-      | KNormal.App (id0, id1_lst) ->
+      | KNormal.App (id0, id1_lst, p) ->
 	 parser_iter (Syntax.App
-			(Syntax.Var id0,
-			 List.rev_map (fun id -> Syntax.Var id) id1_lst))
-      | KNormal.Tuple id_lst ->
+			(Syntax.Var (id0, p),
+			 List.rev_map (fun id -> Syntax.Var (id, p)) id1_lst,
+			 p))
+      | KNormal.Tuple (id_lst, p) ->
 	 parser_iter (Syntax.Tuple
-			(List.rev_map (fun id -> Syntax.Var id) id_lst))
-      | KNormal.LetTuple (tuple, id, t) ->
-	 lettuple_emit tuple (LtId id) (LKn t)
-      | KNormal.Get (id0, id1) ->
-	 parser_iter (Syntax.Get (Syntax.Var id0, Syntax.Var id1))
-      | KNormal.Put (id0, id1, id2) ->
-	 parser_iter (Syntax.Put (Syntax.Var id0, Syntax.Var id1, Syntax.Var id2))
-      | KNormal.ExtArray id ->
+			(List.rev_map (fun id -> Syntax.Var (id, p)) id_lst, p))
+      | KNormal.LetTuple (tuple, id, t, p) ->
+	 lettuple_emit tuple (LtId id) (LKn t) p
+      | KNormal.Get (id0, id1, p) ->
+	 parser_iter (Syntax.Get (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
+      | KNormal.Put (id0, id1, id2, p) ->
+	 parser_iter (Syntax.Put (Syntax.Var (id0, p), Syntax.Var (id1, p), Syntax.Var (id2, p), p))
+      | KNormal.ExtArray (id, p) ->
 	 (Format.open_box 1;
 	  Format.print_string "(ExtArray";
 	  Format.print_space ();
 	  id_emit id;
 	  Format.print_string ")")
-      | KNormal.ExtFunApp (id0, id1_lst) ->
+      | KNormal.ExtFunApp (id0, id1_lst, p) ->
 	 (Format.open_box 1;
 	  Format.print_string "(ExtFunApp";
 	  Format.print_space ();
@@ -388,7 +389,7 @@ and kNormal_iter s =
 	  Format.open_box 1;
 	  Format.print_string "(";
 	  parser_list_emit (List.rev_map
-			      (fun id -> (Syntax.Var id)) id1_lst);
+			      (fun id -> (Syntax.Var (id, p))) id1_lst);
 	  Format.print_string ")";
 	  Format.close_box ();
 	  Format.close_box ())
@@ -396,15 +397,15 @@ and kNormal_iter s =
     Format.close_box ()
   end
 (* ifop_emit : string -> Id.t -> Id.t -> ifop_t -> ifop_t -> unit *)
-and ifop_emit name id0 id1 t0 t1 =
+and ifop_emit name id0 id1 t0 t1 p =
   (Format.open_vbox 1;
    (* 評価式 *)
    Format.open_hbox ();
    Format.print_string ("(" ^ name);
    Format.print_space ();
-   parser_iter (Syntax.Var id0);
+   parser_iter (Syntax.Var (id0, p));
    Format.print_space ();
-   parser_iter (Syntax.Var id1);
+   parser_iter (Syntax.Var (id1, p));
    Format.close_box ();
    Format.print_space ();
    (* true節、false節 *)
@@ -493,25 +494,25 @@ and closure_iter s =
     Format.open_box 2;
     begin
       match s with
-      | Closure.Unit    -> kNormal_iter KNormal.Unit
-      | Closure.Int i   -> kNormal_iter (KNormal.Int i)
-      | Closure.Float f -> kNormal_iter (KNormal.Float f)
-      | Closure.Neg id  -> kNormal_iter (KNormal.Neg id)
-      | Closure.Add (id0, id1)  -> kNormal_iter (KNormal.Add (id0, id1))
-      | Closure.Sub (id0, id1)  -> kNormal_iter (KNormal.Sub (id0, id1))
-      | Closure.FNeg id         -> kNormal_iter (KNormal.FNeg id)
-      | Closure.FAdd (id0, id1) -> kNormal_iter (KNormal.FAdd (id0, id1))
-      | Closure.FSub (id0, id1) -> kNormal_iter (KNormal.FSub (id0, id1))
-      | Closure.FMul (id0, id1) -> kNormal_iter (KNormal.FMul (id0, id1))
-      | Closure.FDiv (id0, id1) -> kNormal_iter (KNormal.FDiv (id0, id1))
-      | Closure.IfEq (id0, id1, t0, t1) ->
-	 ifop_emit "IfEq" id0 id1 (IoCl t0) (IoCl t1)
-      | Closure.IfLE (id0, id1, t0, t1) ->
-	 ifop_emit "IfLE" id0 id1 (IoCl t0) (IoCl t1)
-      | Closure.Let ((id, ty), t0, t1) ->
-	 let_emit id ty (LCl t0) (LCl t1)
-      | Closure.Var id -> kNormal_iter (KNormal.Var id)
-      | Closure.MakeCls ((id, ty), cl, t) ->
+      | Closure.Unit p       -> kNormal_iter (KNormal.Unit p)
+      | Closure.Int (i, p)   -> kNormal_iter (KNormal.Int (i, p))
+      | Closure.Float (f, p) -> kNormal_iter (KNormal.Float (f, p))
+      | Closure.Neg (id, p)  -> kNormal_iter (KNormal.Neg (id, p))
+      | Closure.Add (id0, id1, p)  -> kNormal_iter (KNormal.Add (id0, id1, p))
+      | Closure.Sub (id0, id1, p)  -> kNormal_iter (KNormal.Sub (id0, id1, p))
+      | Closure.FNeg (id, p)       -> kNormal_iter (KNormal.FNeg (id, p))
+      | Closure.FAdd (id0, id1, p) -> kNormal_iter (KNormal.FAdd (id0, id1, p))
+      | Closure.FSub (id0, id1, p) -> kNormal_iter (KNormal.FSub (id0, id1, p))
+      | Closure.FMul (id0, id1, p) -> kNormal_iter (KNormal.FMul (id0, id1, p))
+      | Closure.FDiv (id0, id1, p) -> kNormal_iter (KNormal.FDiv (id0, id1, p))
+      | Closure.IfEq (id0, id1, t0, t1, p) ->
+	 ifop_emit "IfEq" id0 id1 (IoCl t0) (IoCl t1) p
+      | Closure.IfLE (id0, id1, t0, t1, p) ->
+	 ifop_emit "IfLE" id0 id1 (IoCl t0) (IoCl t1) p
+      | Closure.Let ((id, ty), t0, t1, p) ->
+	 let_emit id ty (LCl t0) (LCl t1) p
+      | Closure.Var (id, p) -> kNormal_iter (KNormal.Var (id, p))
+      | Closure.MakeCls ((id, ty), cl, t, p) ->
 	  (Format.open_vbox 1;
 	   Format.print_string "(MakeCls";
 	   Format.print_space ();
@@ -526,7 +527,7 @@ and closure_iter s =
 	   closure_iter t;
 	   Format.print_string ")";
 	   Format.close_box ())
-      | Closure.AppCls (id0, id1_lst) ->
+      | Closure.AppCls (id0, id1_lst, p) ->
 	  (Format.print_string "(AppCls";
 	   Format.print_space ();
 	   (* 識別子 *)
@@ -538,9 +539,9 @@ and closure_iter s =
 	   Format.close_box ();
 	   Format.print_space ();
 	   (* 引数 *)
-	   parser_list_emit (List.rev_map (fun id -> Syntax.Var id) id1_lst);
+	   parser_list_emit (List.rev_map (fun id -> Syntax.Var (id, p)) id1_lst);
 	   Format.print_string ")")
-      | Closure.AppDir (label, id_lst) ->
+      | Closure.AppDir (label, id_lst, p) ->
 	  (Format.print_string "(AppCls";
 	   Format.print_space ();
 	   (* 識別子 *)
@@ -552,14 +553,14 @@ and closure_iter s =
 	   Format.close_box ();
 	   Format.print_space ();
 	   (* 引数 *)
-	   parser_list_emit (List.rev_map (fun id -> Syntax.Var id) id_lst);
+	   parser_list_emit (List.rev_map (fun id -> Syntax.Var (id, p)) id_lst);
 	   Format.print_string ")")
-      | Closure.Tuple tuple -> kNormal_iter (KNormal.Tuple tuple)
-      | Closure.LetTuple (tuple, id, t) ->
-	 lettuple_emit tuple (LtId id) (LCl t)
-      | Closure.Get (id0, id1)      -> kNormal_iter (KNormal.Get (id0, id1))
-      | Closure.Put (id0, id1, id2) -> kNormal_iter (KNormal.Put (id0, id1, id2))
-      | Closure.ExtArray label ->
+      | Closure.Tuple (tuple, p) -> kNormal_iter (KNormal.Tuple (tuple, p))
+      | Closure.LetTuple (tuple, id, t, p) ->
+	 lettuple_emit tuple (LtId id) (LCl t) p
+      | Closure.Get (id0, id1, p)      -> kNormal_iter (KNormal.Get (id0, id1, p))
+      | Closure.Put (id0, id1, id2, p) -> kNormal_iter (KNormal.Put (id0, id1, id2, p))
+      | Closure.ExtArray (label, p) ->
 	 (Format.print_string "(ExtArray";
 	  Format.print_space ();
 	  label_emit label;

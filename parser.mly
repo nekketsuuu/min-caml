@@ -1,41 +1,50 @@
 %{
 (* parserが利用する変数、関数、型などの定義 *)
 open Syntax
-let addtyp x = (x, Type.gentyp ())
+let addtyp (x, _) = (x, Type.gentyp ())
+let pos_of_exp = function
+    Unit p
+  | Bool (_, p) | Int (_, p) | Float (_, p)
+  | Not (_, p) | Neg (_, p) | Add (_, _, p) | Sub (_, _, p)
+  | FNeg (_, p) | FAdd (_, _, p) | FSub (_, _, p) | FMul (_, _, p) | FDiv (_, _, p)
+  | Eq (_, _, p) | LE (_, _, p) | If (_, _, _, p)
+  | Let (_, _, _, p) | Var (_, p) | LetRec (_, _, p)
+  | App (_, _, p) | Tuple (_, p) | LetTuple (_, _, _, p)
+  | Array (_, _, p) | Get (_, _, p) | Put (_, _, _, p) -> p
 %}
 
 /* (* 字句を表すデータ型の定義 (caml2html: parser_token) *) */
-%token <bool> BOOL
-%token <int> INT
-%token <float> FLOAT
-%token NOT
-%token MINUS
-%token PLUS
-%token MINUS_DOT
-%token PLUS_DOT
-%token AST_DOT
-%token SLASH_DOT
-%token EQUAL
-%token LESS_GREATER
-%token LESS_EQUAL
-%token GREATER_EQUAL
-%token LESS
-%token GREATER
-%token IF
-%token THEN
-%token ELSE
-%token <Id.t> IDENT
-%token LET
-%token IN
-%token REC
-%token COMMA
-%token ARRAY_CREATE
-%token DOT
-%token LESS_MINUS
-%token SEMICOLON
-%token LPAREN
-%token RPAREN
-%token EOF
+%token <bool * Lexing.position> BOOL
+%token <int * Lexing.position> INT
+%token <float * Lexing.position> FLOAT
+%token <Lexing.position> NOT
+%token <Lexing.position> MINUS
+%token <Lexing.position> PLUS
+%token <Lexing.position> MINUS_DOT
+%token <Lexing.position> PLUS_DOT
+%token <Lexing.position> AST_DOT
+%token <Lexing.position> SLASH_DOT
+%token <Lexing.position> EQUAL
+%token <Lexing.position> LESS_GREATER
+%token <Lexing.position> LESS_EQUAL
+%token <Lexing.position> GREATER_EQUAL
+%token <Lexing.position> LESS
+%token <Lexing.position> GREATER
+%token <Lexing.position> IF
+%token <Lexing.position> THEN
+%token <Lexing.position> ELSE
+%token <Id.t * Lexing.position> IDENT
+%token <Lexing.position> LET
+%token <Lexing.position> IN
+%token <Lexing.position> REC
+%token <Lexing.position> COMMA
+%token <Lexing.position> ARRAY_CREATE
+%token <Lexing.position> DOT
+%token <Lexing.position> LESS_MINUS
+%token <Lexing.position> SEMICOLON
+%token <Lexing.position> LPAREN
+%token <Lexing.position> RPAREN
+%token <Lexing.position> EOF
 
 /* (* 優先順位とassociativityの定義（低い方から高い方へ） (caml2html: parser_prior) *) */
 %right prec_let
@@ -60,79 +69,83 @@ simple_exp: /* (* 括弧をつけなくても関数の引数になれる式 (caml2html: parser_simp
 | LPAREN exp RPAREN
     { $2 }
 | LPAREN RPAREN
-    { Unit }
+    { Unit($1) }
 | BOOL
-    { Bool($1) }
+    { match $1 with
+      | (b, p) -> Bool(b, p) }
 | INT
-    { Int($1) }
+    { match $1 with
+      | (i, p) -> Int(i, p) }
 | FLOAT
-    { Float($1) }
+    { match $1 with
+      | (f, p) -> Float(f, p) }
 | IDENT
-    { Var($1) }
+    { match $1 with
+      | (id, p) -> Var(id, p) }
 | simple_exp DOT LPAREN exp RPAREN
-    { Get($1, $4) }
+    { Get($1, $4, $2) }
 
 exp: /* (* 一般の式 (caml2html: parser_exp) *) */
 | simple_exp
     { $1 }
 | NOT exp
     %prec prec_app
-    { Not($2) }
+    { Not($2, $1) }
 | MINUS exp
     %prec prec_unary_minus
     { match $2 with
-    | Float(f) -> Float(-.f) (* -1.23などは型エラーではないので別扱い *)
-    | e -> Neg(e) }
+    | Float(f, _) -> Float(-.f, $1) (* -1.23などは型エラーではないので別扱い *)
+    | e -> Neg(e, $1) }
 | exp PLUS exp /* (* 足し算を構文解析するルール (caml2html: parser_add) *) */
-    { Add($1, $3) }
+    { Add($1, $3, $2) }
 | exp MINUS exp
-    { Sub($1, $3) }
+    { Sub($1, $3, $2) }
 | exp EQUAL exp
-    { Eq($1, $3) }
+    { Eq($1, $3, $2) }
 | exp LESS_GREATER exp
-    { Not(Eq($1, $3)) }
+    { Not(Eq($1, $3, $2), $2) }
 | exp LESS exp
-    { Not(LE($3, $1)) }
+    { Not(LE($3, $1, $2), $2) }
 | exp GREATER exp
-    { Not(LE($1, $3)) }
+    { Not(LE($1, $3, $2), $2) }
 | exp LESS_EQUAL exp
-    { LE($1, $3) }
+    { LE($1, $3, $2) }
 | exp GREATER_EQUAL exp
-    { LE($3, $1) }
+    { LE($3, $1, $2) }
 | IF exp THEN exp ELSE exp
     %prec prec_if
-    { If($2, $4, $6) }
+    { If($2, $4, $6, $1) }
 | MINUS_DOT exp
     %prec prec_unary_minus
-    { FNeg($2) }
+    { FNeg($2, $1) }
 | exp PLUS_DOT exp
-    { FAdd($1, $3) }
+    { FAdd($1, $3, $2) }
 | exp MINUS_DOT exp
-    { FSub($1, $3) }
+    { FSub($1, $3, $2) }
 | exp AST_DOT exp
-    { FMul($1, $3) }
+    { FMul($1, $3, $2) }
 | exp SLASH_DOT exp
-    { FDiv($1, $3) }
+    { FDiv($1, $3, $2) }
 | LET IDENT EQUAL exp IN exp
     %prec prec_let
-    { Let(addtyp $2, $4, $6) }
+    { Let(addtyp $2, $4, $6, $1) }
 | LET REC fundef IN exp
     %prec prec_let
-    { LetRec($3, $5) }
+    { LetRec($3, $5, $1) }
 | exp actual_args
     %prec prec_app
-    { App($1, $2) }
+    { App($1, $2, pos_of_exp $1) }
 | elems
-    { Tuple($1) }
+    { Tuple($1, pos_of_exp (List.hd $1)) }
 | LET LPAREN pat RPAREN EQUAL exp IN exp
-    { LetTuple($3, $6, $8) }
+    { LetTuple($3, $6, $8, $1) }
 | simple_exp DOT LPAREN exp RPAREN LESS_MINUS exp
-    { Put($1, $4, $7) }
+    { Put($1, $4, $7, $2) }
 | exp SEMICOLON exp
-    { Let((Id.gentmp Type.Unit, Type.Unit), $1, $3) }
+    { Let((Id.gentmp Type.Unit, Type.Unit), $1, $3, $2) }
 | ARRAY_CREATE simple_exp simple_exp
     %prec prec_app
-    { Array($2, $3) }
+    { Array($2, $3, $1) }
 | error
     { failwith
 	(Printf.sprintf "parse error near characters %d-%d"

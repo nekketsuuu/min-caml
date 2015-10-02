@@ -73,24 +73,24 @@ and asm_iter = function
 and exp_iter e =
   begin
     (match e with
-     | Asm.Nop -> Format.print_string "Nop"
-     | Asm.Set i ->
+     | Asm.Nop p -> Format.print_string "Nop"
+     | Asm.Set (i, p) ->
 	(Format.open_hbox ();
 	 Format.print_string "Set";
 	 Format.print_space ();
 	 Format.print_int i;
 	 Format.close_box ())
-     | Asm.SetL l ->
+     | Asm.SetL (l, p) ->
 	(Format.open_hbox ();
 	 Format.print_string "SetL";
 	 Format.print_space ();
 	 label_emit l;
 	 Format.close_box ())
-     | Asm.Mov id -> monop_emit "Mov" id
-     | Asm.Neg id -> monop_emit "Neg" id
-     | Asm.Add (id, idimm) -> binop_imm_emit "Add" id idimm
-     | Asm.Sub (id, idimm) -> binop_imm_emit "Sub" id idimm
-     | Asm.Ld (id, idimm, i) ->
+     | Asm.Mov (id, p) -> monop_emit "Mov" id
+     | Asm.Neg (id, p) -> monop_emit "Neg" id
+     | Asm.Add (id, idimm, p) -> binop_imm_emit "Add" id idimm
+     | Asm.Sub (id, idimm, p) -> binop_imm_emit "Sub" id idimm
+     | Asm.Ld (id, idimm, i, p) ->
 	(Format.open_hbox ();
 	 Format.print_string "Ld";
 	 Format.print_space ();
@@ -100,7 +100,7 @@ and exp_iter e =
 	 Format.print_space ();
 	 Format.print_int i;
 	 Format.close_box ())
-     | Asm.St (id0, id1, idimm, i) ->
+     | Asm.St (id0, id1, idimm, i, p) ->
 	(Format.open_hbox ();
 	 Format.print_string "St";
 	 Format.print_space ();
@@ -112,13 +112,13 @@ and exp_iter e =
 	 Format.print_space;
 	 Format.print_int i;
 	 Format.close_box ())
-     | Asm.FMovD id -> monop_emit "FMovD" id
-     | Asm.FNegD id -> monop_emit "FNegD" id
-     | Asm.FAddD (id0, id1) -> binop_id_emit "FAddD" id0 id1
-     | Asm.FSubD (id0, id1) -> binop_id_emit "FSubD" id0 id1
-     | Asm.FMulD (id0, id1) -> binop_id_emit "FMulD" id0 id1
-     | Asm.FDivD (id0, id1) -> binop_id_emit "FDivD" id0 id1
-     | Asm.LdDF (id, idimm, i) ->
+     | Asm.FMovD (id, p) -> monop_emit "FMovD" id
+     | Asm.FNegD (id, p) -> monop_emit "FNegD" id
+     | Asm.FAddD (id0, id1, p) -> binop_id_emit "FAddD" id0 id1
+     | Asm.FSubD (id0, id1, p) -> binop_id_emit "FSubD" id0 id1
+     | Asm.FMulD (id0, id1, p) -> binop_id_emit "FMulD" id0 id1
+     | Asm.FDivD (id0, id1, p) -> binop_id_emit "FDivD" id0 id1
+     | Asm.LdDF (id, idimm, i, p) ->
 	(Format.open_hbox ();
 	 Format.print_string "LdDF";
 	 Format.print_space ();
@@ -128,7 +128,7 @@ and exp_iter e =
 	 Format.print_space ();
 	 Format.print_int i;
 	 Format.close_box ())
-     | Asm.StDF (id0, id1, idimm, i) ->
+     | Asm.StDF (id0, id1, idimm, i, p) ->
 	(Format.open_hbox ();
 	 Format.print_string "StDF";
 	 Format.print_space ();
@@ -140,17 +140,17 @@ and exp_iter e =
 	 Format.print_space;
 	 Format.print_int i;
 	 Format.close_box ())
-     | Asm.Comment str ->
+     | Asm.Comment (str, p) ->
 	(Format.open_box 1;
 	 Format.print_string "; ";
 	 Format.print_string str;
 	 Format.close_box ())
-     | Asm.IfEq (id, idimm, t0, t1) -> ifint_emit "IfEq" id idimm t0 t1
-     | Asm.IfLE (id, idimm, t0, t1) -> ifint_emit "IfLE" id idimm t0 t1
-     | Asm.IfGE (id, idimm, t0, t1) -> ifint_emit "IfGE" id idimm t0 t1
-     | Asm.IfFEq (id0, id1, t0, t1) -> iffloat_emit "IfFEq" id0 id1 t0 t1
-     | Asm.IfFLE (id0, id1, t0, t1) -> iffloat_emit "IfFLE" id0 id1 t0 t1
-     | Asm.CallCls (id, iargs, fargs) -> 
+     | Asm.IfEq (id, idimm, t0, t1, p) -> ifint_emit "IfEq" id idimm t0 t1
+     | Asm.IfLE (id, idimm, t0, t1, p) -> ifint_emit "IfLE" id idimm t0 t1
+     | Asm.IfGE (id, idimm, t0, t1, p) -> ifint_emit "IfGE" id idimm t0 t1
+     | Asm.IfFEq (id0, id1, t0, t1, p) -> iffloat_emit "IfFEq" id0 id1 t0 t1
+     | Asm.IfFLE (id0, id1, t0, t1, p) -> iffloat_emit "IfFLE" id0 id1 t0 t1
+     | Asm.CallCls (id, iargs, fargs, p) -> 
 	(Format.open_hbox ();
 	 Format.print_string "CallCls";
 	 Format.print_space ();
@@ -165,7 +165,7 @@ and exp_iter e =
 	 Format.print_string "]";
 	 Format.print_space ();
 	 Format.close_box ())
-     | Asm.CallDir (label, iargs, fargs) -> 
+     | Asm.CallDir (label, iargs, fargs, p) -> 
 	(Format.open_hbox ();
 	 Format.print_string "CallDir";
 	 Format.print_space ();
@@ -180,7 +180,7 @@ and exp_iter e =
 	 Format.print_string "]";
 	 Format.print_space ();
 	 Format.close_box ())
-     | Asm.Save (id0, id1) ->
+     | Asm.Save (id0, id1, p) ->
 	(Format.open_hbox ();
 	 Format.print_string "Save";
 	 Format.print_space ();
@@ -188,7 +188,7 @@ and exp_iter e =
 	 Format.print_space ();
 	 id_emit id1;
 	 Format.close_box ())
-     | Asm.Restore id ->
+     | Asm.Restore (id, p) ->
 	(Format.open_hbox ();
 	 Format.print_string "Restore";
 	 Format.print_space ();

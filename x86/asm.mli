@@ -3,35 +3,35 @@ type t =
   | Ans of exp
   | Let of (Id.t * Type.t) * exp * t
 and exp =
-  | Nop
-  | Set of int
-  | SetL of Id.l
-  | Mov of Id.t
-  | Neg of Id.t
-  | Add of Id.t * id_or_imm
-  | Sub of Id.t * id_or_imm
-  | Ld of Id.t * id_or_imm * int
-  | St of Id.t * Id.t * id_or_imm * int
-  | FMovD of Id.t
-  | FNegD of Id.t
-  | FAddD of Id.t * Id.t
-  | FSubD of Id.t * Id.t
-  | FMulD of Id.t * Id.t
-  | FDivD of Id.t * Id.t
-  | LdDF of Id.t * id_or_imm * int
-  | StDF of Id.t * Id.t * id_or_imm * int
-  | Comment of string
+  | Nop of Lexing.position
+  | Set of int * Lexing.position
+  | SetL of Id.l * Lexing.position
+  | Mov of Id.t * Lexing.position
+  | Neg of Id.t * Lexing.position
+  | Add of Id.t * id_or_imm * Lexing.position
+  | Sub of Id.t * id_or_imm * Lexing.position
+  | Ld of Id.t * id_or_imm * int * Lexing.position
+  | St of Id.t * Id.t * id_or_imm * int * Lexing.position
+  | FMovD of Id.t * Lexing.position
+  | FNegD of Id.t * Lexing.position
+  | FAddD of Id.t * Id.t * Lexing.position
+  | FSubD of Id.t * Id.t * Lexing.position
+  | FMulD of Id.t * Id.t * Lexing.position
+  | FDivD of Id.t * Id.t * Lexing.position
+  | LdDF of Id.t * id_or_imm * int * Lexing.position
+  | StDF of Id.t * Id.t * id_or_imm * int * Lexing.position
+  | Comment of string * Lexing.position
   (* virtual instructions *)
-  | IfEq of Id.t * id_or_imm * t * t
-  | IfLE of Id.t * id_or_imm * t * t
-  | IfGE of Id.t * id_or_imm * t * t
-  | IfFEq of Id.t * Id.t * t * t
-  | IfFLE of Id.t * Id.t * t * t
+  | IfEq of Id.t * id_or_imm * t * t * Lexing.position
+  | IfLE of Id.t * id_or_imm * t * t * Lexing.position
+  | IfGE of Id.t * id_or_imm * t * t * Lexing.position
+  | IfFEq of Id.t * Id.t * t * t * Lexing.position
+  | IfFLE of Id.t * Id.t * t * t * Lexing.position
   (* closure address, integer arguments, and float arguments *)
-  | CallCls of Id.t * Id.t list * Id.t list
-  | CallDir of Id.l * Id.t list * Id.t list
-  | Save of Id.t * Id.t (* レジスタ変数の値をスタック変数へ保存 *)
-  | Restore of Id.t (* スタック変数から値を復元 *)
+  | CallCls of Id.t * Id.t list * Id.t list * Lexing.position
+  | CallDir of Id.l * Id.t list * Id.t list * Lexing.position
+  | Save of Id.t * Id.t * Lexing.position(* レジスタ変数の値をスタック変数へ保存 *)
+  | Restore of Id.t * Lexing.position (* スタック変数から値を復元 *)
 type fundef = { name : Id.l; args : Id.t list; fargs : Id.t list; body : t; ret : Type.t }
 type prog = Prog of (Id.l * float) list * fundef list * t
 
@@ -56,3 +56,5 @@ val fv : t -> Id.t list
 val concat : t -> Id.t * Type.t -> t -> t
 
 val align : int -> int
+
+val pos_of_exp : exp -> Lexing.position
