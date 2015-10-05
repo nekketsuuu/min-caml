@@ -87,17 +87,21 @@ rule token = parse
     { IDENT(Lexing.lexeme lexbuf, lexbuf.Lexing.lex_curr_p) }
 | _
     { failwith
-	(Printf.sprintf "unknown token %s near characters %d-%d"
+	(Printf.sprintf "unknown token %s near line %d characters %d-%d"
 	   (Lexing.lexeme lexbuf)
-	   (Lexing.lexeme_start lexbuf)
-	   (Lexing.lexeme_end lexbuf)) }
+	   lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum
+	   ((Lexing.lexeme_start lexbuf) - lexbuf.Lexing.lex_curr_p.Lexing.pos_bol)
+	   ((Lexing.lexeme_end lexbuf) - lexbuf.Lexing.lex_curr_p.Lexing.pos_bol)) }
 and comment = parse
+| '\n'
+    { Lexing.new_line lexbuf;
+      comment lexbuf }
 | "*)"
     { () }
 | "(*"
     { comment lexbuf;
       comment lexbuf }
 | eof
-    { Format.eprintf "warning: unterminated comment@." }
+    { Format.eprintf "warning: unterminated comment@%d.\n" lexbuf.Lexing.lex_curr_p.pos_lnum }
 | _
     { comment lexbuf }

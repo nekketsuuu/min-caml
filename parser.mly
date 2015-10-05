@@ -2,15 +2,6 @@
 (* parserが利用する変数、関数、型などの定義 *)
 open Syntax
 let addtyp (x, _) = (x, Type.gentyp ())
-let pos_of_exp = function
-    Unit p
-  | Bool (_, p) | Int (_, p) | Float (_, p)
-  | Not (_, p) | Neg (_, p) | Add (_, _, p) | Sub (_, _, p)
-  | FNeg (_, p) | FAdd (_, _, p) | FSub (_, _, p) | FMul (_, _, p) | FDiv (_, _, p)
-  | Eq (_, _, p) | LE (_, _, p) | If (_, _, _, p)
-  | Let (_, _, _, p) | Var (_, p) | LetRec (_, _, p)
-  | App (_, _, p) | Tuple (_, p) | LetTuple (_, _, _, p)
-  | Array (_, _, p) | Get (_, _, p) | Put (_, _, _, p) -> p
 %}
 
 /* (* 字句を表すデータ型の定義 (caml2html: parser_token) *) */
@@ -93,9 +84,9 @@ exp: /* (* 一般の式 (caml2html: parser_exp) *) */
     { Not($2, $1) }
 | MINUS exp
     %prec prec_unary_minus
-    { match $2 with
-    | Float(f, _) -> Float(-.f, $1) (* -1.23などは型エラーではないので別扱い *)
-    | e -> Neg(e, $1) }
+    { (match $2 with
+       | Float(f, _) -> Float(-.f, $1) (* -1.23などは型エラーではないので別扱い *)
+       | e -> Neg(e, $1)) }
 | exp PLUS exp /* (* 足し算を構文解析するルール (caml2html: parser_add) *) */
     { Add($1, $3, $2) }
 | exp MINUS exp
@@ -134,9 +125,9 @@ exp: /* (* 一般の式 (caml2html: parser_exp) *) */
     { LetRec($3, $5, $1) }
 | exp actual_args
     %prec prec_app
-    { App($1, $2, pos_of_exp $1) }
+    { App($1, $2, Syntax.pos_of_exp $1) }
 | elems
-    { Tuple($1, pos_of_exp (List.hd $1)) }
+    { Tuple($1, Syntax.pos_of_exp (List.hd $1)) }
 | LET LPAREN pat RPAREN EQUAL exp IN exp
     { LetTuple($3, $6, $8, $1) }
 | simple_exp DOT LPAREN exp RPAREN LESS_MINUS exp
@@ -147,10 +138,12 @@ exp: /* (* 一般の式 (caml2html: parser_exp) *) */
     %prec prec_app
     { Array($2, $3, $1) }
 | error
-    { failwith
-	(Printf.sprintf "parse error near characters %d-%d"
-	   (Parsing.symbol_start ())
-	   (Parsing.symbol_end ())) }
+    { let p = (Parsing.symbol_start_pos ()) in
+      (Printf.fprintf stderr "Error: parse error near line %d characters %d-%d\n"
+		      p.Lexing.pos_lnum
+		      ((Parsing.symbol_start ()) - p.Lexing.pos_bol)
+		      ((Parsing.symbol_end ()) - p.Lexing.pos_bol);
+       failwith "Parse error") }
 
 fundef:
 | IDENT formal_args EQUAL exp

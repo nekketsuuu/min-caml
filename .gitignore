@@ -43,6 +43,8 @@
 /test/*
 !/test/*.ml
 !/test/*.c
+/error_test/*
+!/error_test/*.ml
 
 # Backup files
 *~

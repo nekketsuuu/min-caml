@@ -11,72 +11,82 @@ let rec iter n e = (* 最適化処理をくりかえす (caml2html: main_iter) *)
 let lexbuf outchan l = (* バッファをコンパイルor途中まで変換してチャンネルへ出力する *)
   Id.counter := 0;
   Typing.extenv := M.empty;
-  match !debug_level with
-  | Debug.Parser ->
-     Debug.parser_emit outchan (Parser.exp Lexer.token l)
-  | Debug.Typing ->
-     Debug.parser_emit outchan (Typing.f (Parser.exp Lexer.token l))
-  | Debug.KNormal ->
-     Debug.kNormal_emit outchan (KNormal.f (Typing.f (Parser.exp Lexer.token l)))
-  | Debug.Alpha ->
-     Debug.kNormal_emit outchan (Alpha.f
+  try
+   (match !debug_level with
+    | Debug.Parser ->
+       Debug.parser_emit outchan (Parser.exp Lexer.token l)
+    | Debug.Typing ->
+       Debug.parser_emit outchan (Typing.f (Parser.exp Lexer.token l))
+    | Debug.KNormal ->
+       Debug.kNormal_emit outchan (KNormal.f (Typing.f (Parser.exp Lexer.token l)))
+    | Debug.Alpha ->
+       Debug.kNormal_emit outchan (Alpha.f
+				     (KNormal.f
+					(Typing.f (Parser.exp Lexer.token l))))
+    | Debug.Iter ->
+       Debug.kNormal_emit outchan
+			  (iter !limit
+				(Alpha.f
 				   (KNormal.f
-				      (Typing.f (Parser.exp Lexer.token l))))
-  | Debug.Iter ->
-     Debug.kNormal_emit outchan
-			(iter !limit
-			      (Alpha.f
-				 (KNormal.f
-				    (Typing.f (Parser.exp Lexer.token l)))))
-  | Debug.Closure ->
-     Debug.closure_prog_emit
-       outchan
-       (Closure.f
-	  (iter !limit
-		(Alpha.f
-		   (KNormal.f
-		      (Typing.f (Parser.exp Lexer.token l))))))
-  | Debug.Virtual ->
-     DebugAsm.asm_prog_emit
-       outchan
-       (Virtual.f
-	  (Closure.f
-	     (iter !limit
-		   (Alpha.f
-		      (KNormal.f
-			 (Typing.f (Parser.exp Lexer.token l)))))))
-  | Debug.Simm ->
-     DebugAsm.asm_prog_emit
-       outchan
-       (Simm.f
-	  (Virtual.f
-	     (Closure.f
-		(iter !limit
-		      (Alpha.f
-			 (KNormal.f
-			    (Typing.f (Parser.exp Lexer.token l))))))))
-  | Debug.RegAlloc ->
-     DebugAsm.asm_prog_emit
-       outchan
-       (RegAlloc.f
-	  (Simm.f
-	     (Virtual.f
-		(Closure.f
-		   (iter !limit
-			 (Alpha.f
-			    (KNormal.f
-			       (Typing.f (Parser.exp Lexer.token l)))))))))
-  | Debug.Emit ->
-     Emit.f outchan
-	    (RegAlloc.f
-	       (Simm.f
-		  (Virtual.f
-		     (Closure.f
-			(iter !limit
-			      (Alpha.f
-				 (KNormal.f
-				    (Typing.f
-				       (Parser.exp Lexer.token l)))))))))
+				      (Typing.f (Parser.exp Lexer.token l)))))
+    | Debug.Closure ->
+       Debug.closure_prog_emit
+	 outchan
+	 (Closure.f
+	    (iter !limit
+		  (Alpha.f
+		     (KNormal.f
+			(Typing.f (Parser.exp Lexer.token l))))))
+    | Debug.Virtual ->
+       DebugAsm.asm_prog_emit
+	 outchan
+	 (Virtual.f
+	    (Closure.f
+	       (iter !limit
+		     (Alpha.f
+			(KNormal.f
+			   (Typing.f (Parser.exp Lexer.token l)))))))
+    | Debug.Simm ->
+       DebugAsm.asm_prog_emit
+	 outchan
+	 (Simm.f
+	    (Virtual.f
+	       (Closure.f
+		  (iter !limit
+			(Alpha.f
+			   (KNormal.f
+			      (Typing.f (Parser.exp Lexer.token l))))))))
+    | Debug.RegAlloc ->
+       DebugAsm.asm_prog_emit
+	 outchan
+	 (RegAlloc.f
+	    (Simm.f
+	       (Virtual.f
+		  (Closure.f
+		     (iter !limit
+			   (Alpha.f
+			      (KNormal.f
+				 (Typing.f (Parser.exp Lexer.token l)))))))))
+    | Debug.Emit ->
+       Emit.f outchan
+	      (RegAlloc.f
+		 (Simm.f
+		    (Virtual.f
+		       (Closure.f
+			  (iter !limit
+				(Alpha.f
+				   (KNormal.f
+				      (Typing.f
+					 (Parser.exp Lexer.token l)))))))))
+   );
+  with
+    Typing.Error(e, ty1, ty2, p) ->
+      (Format.eprintf "Error: This expression@%d has type %s but an expression was expected type %s\n\t"
+		      p.Lexing.pos_lnum
+		      (Type.string_of_type ty2)
+		      (Type.string_of_type ty1);
+       Debug.parser_emit stderr e;
+       failwith "Type mismatch")
 
 let string s = lexbuf stdout (Lexing.from_string s) (* 文字列をコンパイルして標準出力に表示する (caml2html: main_string) *)
 
