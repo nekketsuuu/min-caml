@@ -65,6 +65,10 @@ test/%.out: $(RESULT) test/%.ml
 del_debug:
 	rm -f test/*.out
 
+.PHONY: debuglist
+debuglist:
+	echo "LEVEL=Parser, Typing, KNormal, Alpha, Iter, Closure, Virtual, Simm, RegAlloc, Emit"
+
 # html
 min-caml.html: main.mli main.ml id.ml m.ml s.ml \
 		syntax.ml type.ml parser.mly lexer.mll typing.mli typing.ml kNormal.mli kNormal.ml \
