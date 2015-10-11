@@ -67,7 +67,7 @@ del_debug:
 
 .PHONY: debuglist
 debuglist:
-	echo "LEVEL=Parser, Typing, KNormal, Alpha, Iter, Closure, Virtual, Simm, RegAlloc, Emit"
+	@echo "LEVEL=Parser, Typing, KNormal, Alpha, Iter, Closure, Virtual, Simm, RegAlloc, Emit"
 
 # html
 min-caml.html: main.mli main.ml id.ml m.ml s.ml \
