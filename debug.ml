@@ -232,7 +232,7 @@ and let_emit id ty t0 t1 p =
    Format.print_string ")";
    Format.close_box ())
 (* fundef_emit : Id.t -> Type.t -> (Id.t * Type.t) list -> fundef_t -> unit *)
-and fundef_emit id ty lst t p =
+and fundef_emit id ty lst t =
   (Format.open_vbox 1;
    Format.print_string "{";
    (* name *)
@@ -351,11 +351,11 @@ and kNormal_iter s =
       | KNormal.Let ((id, ty), t0, t1, p) ->
 	 let_emit id ty (LKn t0) (LKn t1) p
       | KNormal.Var (id, p) -> parser_iter (Syntax.Var (id, p))
-      | KNormal.LetRec ({name = (id, ty); args = lst; body = tb}, t, p) ->
+      | KNormal.LetRec ({name = (id, ty); args = lst; body = tb}, t, _) ->
 	 (Format.open_vbox 1;
 	  Format.print_string "(LetRec";
 	  Format.print_space ();
-	  fundef_emit id ty lst (FdKn tb) p;
+	  fundef_emit id ty lst (FdKn tb);
 	  Format.print_space ();
 	  kNormal_iter t;
 	  Format.print_string ")";
