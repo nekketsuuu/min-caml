@@ -7,8 +7,9 @@ let margin = 192
 let max_indent = 48
 
 type fundef_t   = FdSy of Syntax.t  | FdKn of KNormal.t
-type let_t      = LSy of Syntax.t   | LKn of KNormal.t | LCl of Closure.t
 type lettuple_t = LtSy of Syntax.t  | LtId of Id.t
+type all_t      = ASy of Syntax.t | AKn of KNormal.t | ACl of Closure.t
+type let_t      = LKn of KNormal.t | LCl of Closure.t
 type ifop_t     = IoKn of KNormal.t | IoCl of Closure.t
 
 (* id_emit : Id.t -> unit *)
@@ -148,7 +149,31 @@ and parser_iter s =
 	  Format.print_string ")";
 	  Format.close_box ())
       | Syntax.Let ((id, ty), t0, t1, p) ->
-	 let_emit id ty (LSy t0) (LSy t1) p
+	 (Format.open_vbox 1;
+	  Format.print_string "(";
+	  (* definition *)
+	  Format.open_box 2;
+	  Format.print_string "Let";
+	  Format.print_space ();
+	  id_emit id;
+	  Format.print_space ();
+	  Format.print_string ":";
+	  Format.print_space ();
+	  type_emit ty;
+	  Format.print_space ();
+	  Format.print_string "=";
+	  Format.print_space ();
+	  parser_iter t0;
+	  Format.close_box ();
+	  Format.print_space ();
+	  (* body *)
+	  Format.open_hbox ();
+	  Format.print_string "in";
+	  Format.print_space ();
+	  parser_iter t1;
+	  Format.close_box ();
+	  Format.print_string ")";
+	  Format.close_box ())
       | Syntax.Var (id, _) ->
 	 (Format.print_string "(Var";
 	  Format.print_space ();
@@ -176,7 +201,7 @@ and parser_iter s =
 	  parser_list_emit t_list;
 	  Format.print_string ")")
       | Syntax.LetTuple (tuple, t0, t1, p) ->
-	 lettuple_emit tuple (LtSy t0) (LSy t1) p
+	 lettuple_emit tuple (LtSy t0) (ASy t1) p
       | Syntax.Array (t0, t1, _) ->
 	 (Format.print_string "[Array";
 	  Format.print_space ();
@@ -198,39 +223,6 @@ and parser_iter s =
     end;
     Format.close_box ()
   end
-(* let_emit : Id.t -> Type.t -> let_t -> let_t -> unit *)
-and let_emit id ty t0 t1 p =
-  (Format.open_vbox 1;
-   Format.print_string "(";
-   (* definition *)
-   Format.open_box 2;
-   Format.print_string "Let";
-   Format.print_space ();
-   id_emit id;
-   Format.print_space ();
-   Format.print_string ":";
-   Format.print_space ();
-   type_emit ty;
-   Format.print_space ();
-   Format.print_string "=";
-   Format.print_space ();
-   (match t0 with
-    | LSy tt -> parser_iter tt
-    | LKn tt -> kNormal_iter tt
-    | LCl tt -> closure_iter tt);
-   Format.close_box ();
-   Format.print_space ();
-   (* body *)
-   Format.open_hbox ();
-   Format.print_string "in";
-   Format.print_space ();
-   (match t1 with
-    | LSy tt -> parser_iter tt
-    | LKn tt -> kNormal_iter tt
-    | LCl tt -> closure_iter tt);
-   Format.close_box ();
-   Format.print_string ")";
-   Format.close_box ())
 (* fundef_emit : Id.t -> Type.t -> (Id.t * Type.t) list -> fundef_t -> unit *)
 and fundef_emit id ty lst t =
   (Format.open_vbox 1;
@@ -258,8 +250,9 @@ and fundef_emit id ty lst t =
    Format.close_box ();
    Format.print_space ();
    (* body *)
-   Format.open_box 2;
-   Format.print_string "body = ";
+   Format.open_box 1;
+   Format.print_string "body =";
+   Format.print_space ();
    Format.open_box 0;
    (match t with
     | FdSy tt -> parser_iter tt
@@ -275,7 +268,7 @@ and parser_list_emit = function
   | x::xs -> (parser_iter x;
 	      Format.print_space ();
 	      parser_list_emit xs)
-(* lettuple_emit : (Id.t * Type.t) -> lettuple_t -> let_t -> unit *)
+(* lettuple_emit : (Id.t * Type.t) -> lettuple_t -> all_t -> unit *)
 and lettuple_emit tuple t0 t1 p =
   (Format.open_vbox 2;
    Format.print_string "(";
@@ -301,9 +294,9 @@ and lettuple_emit tuple t0 t1 p =
    Format.print_string "in";
    Format.print_space ();
    (match t1 with
-    | LSy tt -> parser_iter tt
-    | LKn tt -> kNormal_iter tt
-    | LCl tt -> closure_iter tt);
+    | ASy tt -> parser_iter tt
+    | AKn tt -> kNormal_iter tt
+    | ACl tt -> closure_iter tt);
    Format.close_box ();
    Format.print_string ")";
    Format.close_box ())
@@ -369,7 +362,7 @@ and kNormal_iter s =
 	 parser_iter (Syntax.Tuple
 			(List.rev_map (fun id -> Syntax.Var (id, p)) id_lst, p))
       | KNormal.LetTuple (tuple, id, t, p) ->
-	 lettuple_emit tuple (LtId id) (LKn t) p
+	 lettuple_emit tuple (LtId id) (AKn t) p
       | KNormal.Get (id0, id1, p) ->
 	 parser_iter (Syntax.Get (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
       | KNormal.Put (id0, id1, id2, p) ->
@@ -396,6 +389,37 @@ and kNormal_iter s =
     end;
     Format.close_box ()
   end
+(* let_emit : Id.t -> Type.t -> let_t -> let_t -> unit *)
+and let_emit id ty t0 t1 p =
+  (Format.open_vbox 1;
+   Format.print_string "(";
+   (* definition *)
+   Format.open_box 2;
+   Format.print_string "Let";
+   Format.print_space ();
+   id_emit id;
+   Format.print_space ();
+   Format.print_string ":";
+   Format.print_space ();
+   type_emit ty;
+   Format.print_space ();
+   Format.print_string "=";
+   Format.print_space ();
+   (match t0 with
+    | LKn tt -> kNormal_iter tt
+    | LCl tt -> closure_iter tt);
+   Format.print_space ();
+   Format.print_string "in";
+   Format.close_box ();
+   Format.print_space ();
+   (* body *)
+   Format.open_box 0;
+   (match t1 with
+    | LKn tt -> kNormal_iter tt
+    | LCl tt -> closure_iter tt);
+   Format.close_box ();
+   Format.print_string ")";
+   Format.close_box ())
 (* ifop_emit : string -> Id.t -> Id.t -> ifop_t -> ifop_t -> unit *)
 and ifop_emit name id0 id1 t0 t1 p =
   (Format.open_vbox 1;
@@ -557,7 +581,7 @@ and closure_iter s =
 	   Format.print_string ")")
       | Closure.Tuple (tuple, p) -> kNormal_iter (KNormal.Tuple (tuple, p))
       | Closure.LetTuple (tuple, id, t, p) ->
-	 lettuple_emit tuple (LtId id) (LCl t) p
+	 lettuple_emit tuple (LtId id) (ACl t) p
       | Closure.Get (id0, id1, p)      -> kNormal_iter (KNormal.Get (id0, id1, p))
       | Closure.Put (id0, id1, id2, p) -> kNormal_iter (KNormal.Put (id0, id1, id2, p))
       | Closure.ExtArray (label, p) ->
