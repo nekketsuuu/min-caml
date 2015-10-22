@@ -55,7 +55,6 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
   (* 末尾でなかったら計算結果をdestにセット (caml2html: emit_nontail) *)
   | NonTail(_), Nop _ -> ()
   | NonTail(x), Set(i, p) ->
-     Printf.fprintf oc "#test\n";
      Printf.fprintf oc "\taddi\t%s %s $%d" x reg_zero i;
      line oc p
   | NonTail(x), SetL(Id.L(y), p) ->
