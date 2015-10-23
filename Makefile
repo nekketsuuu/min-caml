@@ -71,7 +71,7 @@ debuglist:
 
 .PHONY: arcturu
 arcturu:
-	@sed -i -e "s/\(Format\.eprintf.*free.*\)$/(\* \1 \*)/g" typing.ml
+	sed -i.backup -e "s/\(Format\.eprintf.*free.*\)$$/(\* \1 \*)/g" typing.ml
 
 # html
 min-caml.html: main.mli main.ml id.ml m.ml s.ml \
