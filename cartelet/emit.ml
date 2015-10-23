@@ -403,17 +403,21 @@ let f oc (Prog(data, fundefs, e)) =
   List.iter (fun fundef -> h oc fundef) fundefs;
   Printf.fprintf oc ".globl\tmin_caml_start\n";
   Printf.fprintf oc "min_caml_start:\n";
+  (*
   Printf.fprintf oc "\taddi\t%s %s $-2\n" reg_sp reg_sp;
   Printf.fprintf oc "\tst\t1(%s) %s\n" reg_sp reg_ra;
   Printf.fprintf oc "\tst\t0(%s) %s\n" reg_sp reg_fp;
   Printf.fprintf oc "\tadd\t%s %s %s\n" reg_sp reg_fp reg_zero;
+   *)
   stackset := S.empty;
   stackmap := [];
   Printf.fprintf oc "\t# Main Program Begin\n";
   g oc (NonTail(regs.(0)), e);
   Printf.fprintf oc "\t# Main Program End\n";
+  (*
   Printf.fprintf oc "\tadd\t%s %s %s\n" reg_fp reg_sp reg_zero;
   Printf.fprintf oc "\tld\t0(%s) %s\n" reg_sp reg_fp;
   Printf.fprintf oc "\tld\t-1(%s) %s\n" reg_sp reg_ra;
   Printf.fprintf oc "\taddi\t%s %s $2\n" reg_sp reg_sp;
+   *)
   Printf.fprintf oc "\thalt\n";
