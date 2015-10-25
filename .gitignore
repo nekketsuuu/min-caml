@@ -40,6 +40,9 @@
 /min-rt/*.ppm
 /min-rt/*.sld_
 
+/raytracer/min-rt
+/raytracer/min-rt_b
+
 /test/*
 !/test/*.ml
 !/test/*.c
