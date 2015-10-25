@@ -1,115 +1,45 @@
-#if defined(__CYGWIN__) || defined(__MACH__)
-#define U(x) _##x
-#else
-#define U(x) x
-#endif
-#if defined(__MACH__)
-#define ALIGNSTACK0 andl $0xfffffff0, %esp
-#define ALIGNSTACK1 andl $0xfffffff0, %esp; pushl %eax; pushl %eax; pushl %eax
-#define ALIGNSTACK2 andl $0xfffffff0, %esp; pushl %eax; pushl %eax
-#define ALIGNSTACK3 andl $0xfffffff0, %esp; pushl %eax
-#else
-#define ALIGNSTACK0
-#define ALIGNSTACK1
-#define ALIGNSTACK2
-#define ALIGNSTACK3
-#endif
 .text
 .globl min_caml_print_newline
 min_caml_print_newline:
-	pushl	%ebp
-	movl	%esp, %ebp
-	ALIGNSTACK1
-	pushl	$10
-	call	U(putchar)
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
+	# LF is 0x0a = 10
+	addi %r1 %r0 $10
+	send8 %r1
+	jr %r31
 .globl min_caml_print_int
 min_caml_print_int:
-	pushl	%ebp
-	movl	%esp, %ebp
-	ALIGNSTACK2
-	pushl	%eax
-	pushl	$format_int
-	call	U(printf)
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
+	slt %r1 %r16 %r0
+	beq %r1 %r0 min_caml_print_int_positive
+	# '-' is 0x2d = 45
+	addi %r1 %r0 $45
+	send8 %r1
+min_caml_print_int_positive:
+	# 1桁ずつsend8する(* あとでやる *)
+	send8 %r16
+	jr %r31
 .globl min_caml_print_byte
 min_caml_print_byte:
-	pushl	%ebp
-	movl	%esp, %ebp
-	ALIGNSTACK1
-	pushl	%eax
-	call	U(putchar)
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
+	send8 %r16
+	jr %r31
 .globl min_caml_prerr_int
 min_caml_prerr_int:
-	pushl	%ebp
-	movl	%esp, %ebp
-	ALIGNSTACK3
-	pushl	%eax
-	pushl	$format_int
-	pushl	U(min_caml_stderr)
-	call	U(fprintf)
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
+	addi %r1 %r0 min_caml_print_int
+	jr %r1
 .globl min_caml_prerr_byte
 min_caml_prerr_byte:
-	pushl	%ebp
-	movl	%esp, %ebp
-	ALIGNSTACK2
-	pushl	%eax
-	pushl	U(min_caml_stderr)
-	call	U(fputc)
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
+	addi %r1 %r0 min_caml_print_byte
+	jr %r1
 .globl min_caml_prerr_float
 min_caml_prerr_float:
-	pushl	%ebp
-	movl	%esp, %ebp
-	ALIGNSTACK0
-	subl	$8, %esp
-	movsd	%xmm0, (%esp)
-	pushl	$format_float
-	pushl	U(min_caml_stderr)
-	call	U(fprintf)
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
+	# 後でやる
+	jr %r31
 .globl min_caml_read_int
 min_caml_read_int:
-	pushl	%ebp
-	movl	%esp, %ebp
-	ALIGNSTACK3
-	subl	$4, %esp
-	leal	-4(%ebp), %eax
-	pushl	%eax
-	pushl	$format_int
-	call	U(scanf)
-	movl	-4(%ebp), %eax
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
+	# 未実装
+	jr %r31
 .globl min_caml_read_float
 min_caml_read_float:
-	pushl	%ebp
-	movl	%esp, %ebp
-	ALIGNSTACK0
-	subl	$8, %esp
-	leal	-8(%ebp), %eax
-	pushl	%eax
-	pushl	$format_float
-	call	U(scanf)
-	movsd	-8(%ebp), %xmm0
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
+	# 未実装
+	jr %r31
 .globl min_caml_create_array
 min_caml_create_array:
 	pushl	%ebp
@@ -238,24 +168,13 @@ min_caml_atan:
 	popl	%ebp
 	ret
 .data
-format_int:
-	.asciz	"%d"
-format_float:
-	.asciz	"%lf"
-.balign 8
 float_0:
 	.long	0x0
-	.long	0x0
 float_1:
-	.long	0x0
-	.long	0x3ff00000
-.balign 16
+	.long	0x3f800000
 .globl min_caml_fnegd
 min_caml_fnegd:
-	.long	0
 	.long	0x80000000
-	.long	0
-	.long	0
 .globl min_caml_hp
 min_caml_hp:	
 	.long	0x0
