@@ -179,7 +179,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
       g' oc (NonTail(Id.gentmp Type.Unit), exp);
       Printf.fprintf oc "\tjr\t%s" reg_ra;
       line oc p
-  | Tail, (Set _ | SetL _ | Mov _ | Neg _ | Add _ | Sub _ | Ld _ as exp) ->
+  | Tail, (Set _ | SetL _ | Mov _ | Neg _ | Add _ | Sub _ | Mul _ | Div _ | Ld _ as exp) ->
      let p = Asm.pos_of_exp exp in
      g' oc (NonTail(regs.(0)), exp);
      Printf.fprintf oc "\tjr\t%s" reg_ra;
@@ -279,13 +279,18 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      Printf.fprintf oc "\tjr\t%s" reg_cl;
      line oc p
   | Tail, CallDir(Id.L(x), ys, zs, p) -> (* 末尾呼び出し *)
-     g'_args oc [] ys zs p;
-     Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero x;
-     line oc p;
-     Printf.fprintf oc "\tjr\t%s" reg_tmp;
-     line oc p
+     (match x with
+      | "min_caml_abs_float" ->
+	 (Printf.fprintf oc "\tfabs\t%s %s" (List.hd ys) (List.hd zs);
+	  line oc p)
+      | _ ->
+	 (g'_args oc [] ys zs p;
+	  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero x;
+	  line oc p;
+	  Printf.fprintf oc "\tjr\t%s" reg_tmp;
+	  line oc p))
   | NonTail(a), CallCls(x, ys, zs, p) ->
-     g'_args oc [(x, reg_cl)] ys zs;
+     g'_args oc [(x, reg_cl)] ys zs p;
      let ss = stacksize () in
      Printf.fprintf oc "\taddi\t%s %s $%d" reg_sp reg_sp (-(ss+1));
      line oc p;
@@ -304,24 +309,29 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
        (Printf.fprintf oc "\tmov.s\t%s %s" a fregs.(0);
 	line oc p)
   | NonTail(a), CallDir(Id.L(x), ys, zs, p) ->
-     g'_args oc [] ys zs;
-     let ss = stacksize () in
-     Printf.fprintf oc "\taddi\t%s %s $%d" reg_sp reg_sp (-(ss+1));
-     line oc p;
-     Printf.fprintf oc "\tst\t0(%s) %s" reg_ra reg_sp;
-     line oc p;
-     Printf.fprintf oc "\tjal\t%s" x;
-     line oc p;
-     Printf.fprintf oc "\tld\t0(%s) %s" reg_sp reg_ra;
-     line oc p;
-     Printf.fprintf oc "\taddi\t%s %s $%d" reg_sp reg_sp (ss+1);
-     line oc p;
-     if List.mem a allregs && a <> reg_rv then
-       (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv a reg_zero;
-	line oc p)
-     else if List.mem a allfregs && a <> fregs.(0) then
-       (Printf.fprintf oc "\tmov.s\t%s %s" a fregs.(0);
-	line oc p)
+     (match x with
+      | "min_caml_abs_float" ->
+	 (Printf.fprintf oc "\tfabs\t%s %s" reg_rv (List.hd zs);
+	  line oc p)
+      | _ ->
+	 (g'_args oc [] ys zs p;
+	  let ss = stacksize () in
+	  Printf.fprintf oc "\taddi\t%s %s $%d" reg_sp reg_sp (-(ss+1));
+	  line oc p;
+	  Printf.fprintf oc "\tst\t0(%s) %s" reg_ra reg_sp;
+	  line oc p;
+	  Printf.fprintf oc "\tjal\t%s" x;
+	  line oc p;
+	  Printf.fprintf oc "\tld\t0(%s) %s" reg_sp reg_ra;
+	  line oc p;
+	  Printf.fprintf oc "\taddi\t%s %s $%d" reg_sp reg_sp (ss+1);
+	  line oc p;
+	  if List.mem a allregs && a <> reg_rv then
+	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv a reg_zero;
+	     line oc p)
+	  else if List.mem a allfregs && a <> fregs.(0) then
+	    (Printf.fprintf oc "\tmov.s\t%s %s" a fregs.(0);
+	     line oc p)))
 and g'_tail_if oc e1 e2 b reg1 reg2 p =
   let b_true = Id.genid b in
   Printf.fprintf oc "\t%s\t%s %s %s" b reg1 reg2 b_true;
@@ -333,7 +343,7 @@ and g'_tail_if oc e1 e2 b reg1 reg2 p =
   g oc (Tail, e1);
 and g'_tail_if_float oc e1 e2 b p =
   let b_true = Id.genid b in
-  Printf.fprintf oc "\t%s\t%s %s %s" b b_true;
+  Printf.fprintf oc "\t%s\t%s" b b_true;
   line oc p;
   let stackset_back = !stackset in
   g oc (Tail, e2);
@@ -361,7 +371,7 @@ and g'_non_tail_if oc dest e1 e2 b reg1 reg2 p =
 and g'_non_tail_if_float oc dest e1 e2 b p =
   let b_true = Id.genid (b ^ "_true") in
   let b_cont = Id.genid (b ^ "_cont") in
-  Printf.fprintf oc "\t%s\t%s %s %s" b b_true;
+  Printf.fprintf oc "\t%s\t%s" b b_true;
   line oc p;
   let stackset_back = !stackset in
   g oc (dest, e2);

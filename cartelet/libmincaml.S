@@ -1,84 +1,63 @@
-.text
-.globl min_caml_print_newline
+# print_newline
 min_caml_print_newline:
 	# LF is 0x0a = 10
-	addi %r1 %r0 $10
-	send8 %r1
-	jr %r31
-.globl min_caml_print_byte
-min_caml_print_byte:
-	send8 %r16
-	jr %r31
-.globl min_caml_read_int
+	addi	%r1 %r0 $10
+	send8	%r1
+	jr	%r31
+# print_char
+min_caml_print_char:
+	send8	%r16
+	jr	%r31
+# read_int
 min_caml_read_int:
-	# 未実装
-	jr %r31
-.globl min_caml_read_float
+	addi	%r1 %r0 $8
+	recv8	%r2
+	sll	%r2 %r2 %r1
+	recv8	%r2
+	sll	%r2 %r2 %r1
+	recv8	%r2
+	sll	%r2 %r2 %r1
+	recv8	%r2
+	jr	%r31
+# read_float
 min_caml_read_float:
-	# 未実装
-	jr %r31
-.globl min_caml_create_array
+	addi	%r1 %r0 $8
+	recv8	%r2
+	sll	%r2 %r2 %r1
+	recv8	%r2
+	sll	%r2 %r2 %r1
+	recv8	%r2
+	sll	%r2 %r2 %r1
+	recv8	%r2
+	st	0(%r29) %r2
+	fld	0(%r29) %f0
+	jr	%r31
+# create_array
 min_caml_create_array:
-	pushl	%ebp
-	movl	%esp, %ebp
-	pushl	%ecx
-	pushl	%edx
-	movl	%eax, %ecx
-	movl	min_caml_hp, %eax
-	movl	%ecx, %edx
-	shll	$2, %edx
-	addl	%edx, min_caml_hp
-create_array_loop:
-	cmpl	$0, %ecx
-	jne	create_array_cont
-create_array_exit:
-	popl	%edx
-	popl	%ecx
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
-create_array_cont:
-	decl	%ecx
-	movl	%ebx, (%eax,%ecx,4)
-	jmp	create_array_loop
-.globl min_caml_create_float_array
+	add	%r2 %r0 %r28
+	add	%r18 %r0 %r28
+	addi	%r1 %r0 min_caml_create_array_loop
+min_caml_create_array_loop:
+	st	0(%r18) %r17
+	addi	%r16 %r16 $-1
+	addi	%r18 %r18 $1
+	beq	%r16 %r0 min_caml_create_array_exit
+	jr	%r1
+min_caml_create_array_exit:
+	jr	%r31
+# create_float
 min_caml_create_float_array:
-	pushl	%ebp
-	movl	%esp, %ebp
-	pushl	%ecx
-	pushl	%edx
-	movl	%eax, %ecx
-	movl	min_caml_hp, %eax
-	movl	%ecx, %edx
-	shll	$3, %edx
-	addl	%edx, min_caml_hp
-create_float_array_loop:
-	cmpl	$0, %ecx
-	jne	create_float_array_cont
-create_float_array_exit:
-	popl	%edx
-	popl	%ecx
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
-create_float_array_cont:
-	decl	%ecx
-	movsd	%xmm0, (%eax,%ecx,8)
-	jmp	create_float_array_loop
-.globl min_caml_abs_float
-min_caml_abs_float:
-	pushl	%ebp
-	movl	%esp, %ebp
-	ALIGNSTACK2
-	subl	$8, %esp
-	movsd	%xmm0, (%esp)
-	call	U(fabs)
-	fstpl	(%esp)
-	movsd	(%esp), %xmm0
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
-.globl min_caml_sqrt
+	add	%r2 %r0 %r28
+	add	%r18 %r0 %r28
+	addi	%r1 %r0 min_caml_create_array_loop
+min_caml_create_array_loop:
+	fst	0(%r18) %f0
+	addi	%r16 %r16 $-1
+	addi	%r18 %r18 $1
+	beq	%r16 %r0 min_caml_create_array_exit
+	jr	%r1
+min_caml_create_array_exit:
+	jr	%r31
 min_caml_sqrt:
 	sqrtsd	%xmm0, %xmm0
 	ret
@@ -152,6 +131,3 @@ float_1:
 .globl min_caml_fnegd
 min_caml_fnegd:
 	.long	0x80000000
-.globl min_caml_hp
-min_caml_hp:	
-	.long	0x0
