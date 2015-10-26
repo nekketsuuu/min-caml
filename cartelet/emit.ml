@@ -429,6 +429,12 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.long\t0x3d2aa789\n";
   Printf.fprintf oc "min_caml_kernel_cos_3:^n";
   Printf.fprintf oc "\t.long\t0xbab38106\n"
+  Printf.fprintf oc "min_caml_kernel_sin_1:^n";
+  Printf.fprintf oc "\t.long\t0xbe2aaaac\n"
+  Printf.fprintf oc "min_caml_kernel_sin_2:^n";
+  Printf.fprintf oc "\t.long\t0x3c088666\n"
+  Printf.fprintf oc "min_caml_kernel_sin_3:^n";
+  Printf.fprintf oc "\t.long\t0xb94d64b6\n"
   (* float table *)
   List.iter
     (fun (Id.L(x), f) ->
