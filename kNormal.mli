@@ -5,6 +5,8 @@ type t =
   | Neg of Id.t * Lexing.position
   | Add of Id.t * Id.t * Lexing.position
   | Sub of Id.t * Id.t * Lexing.position
+  | Mul of Id.t * Id.t * Lexing.position
+  | Div of Id.t * Id.t * Lexing.position
   | FNeg of Id.t * Lexing.position
   | FAdd of Id.t * Id.t * Lexing.position
   | FSub of Id.t * Id.t * Lexing.position

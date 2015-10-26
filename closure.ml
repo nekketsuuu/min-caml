@@ -6,6 +6,8 @@ type t = (* クロージャ変換後の式 (caml2html: closure_t) *)
   | Neg of Id.t * Lexing.position
   | Add of Id.t * Id.t * Lexing.position
   | Sub of Id.t * Id.t * Lexing.position
+  | Mul of Id.t * Id.t * Lexing.position
+  | Div of Id.t * Id.t * Lexing.position
   | FNeg of Id.t * Lexing.position
   | FAdd of Id.t * Id.t * Lexing.position
   | FSub of Id.t * Id.t * Lexing.position
@@ -32,7 +34,7 @@ type prog = Prog of fundef list * t
 let rec fv = function
   | Unit _ | Int _ | Float _ | ExtArray _ -> S.empty
   | Neg(x, _) | FNeg(x, _) -> S.singleton x
-  | Add(x, y, _) | Sub(x, y, _) | FAdd(x, y, _) | FSub(x, y, _) | FMul(x, y, _) | FDiv(x, y, _) | Get(x, y, _) -> S.of_list [x; y]
+  | Add(x, y, _) | Sub(x, y, _) | Mul(x, y, _) | Div(x, y, _) | FAdd(x, y, _) | FSub(x, y, _) | FMul(x, y, _) | FDiv(x, y, _) | Get(x, y, _) -> S.of_list [x; y]
   | IfEq(x, y, e1, e2, _)| IfLE(x, y, e1, e2, _) -> S.add x (S.add y (S.union (fv e1) (fv e2)))
   | Let((x, t), e1, e2, _) -> S.union (fv e1) (S.remove x (fv e2))
   | Var(x, _) -> S.singleton x
@@ -51,6 +53,8 @@ let rec g env known = function (* クロージャ変換ルーチン本体 (caml2html: closure
   | KNormal.Neg(x, p) -> Neg(x, p)
   | KNormal.Add(x, y, p) -> Add(x, y, p)
   | KNormal.Sub(x, y, p) -> Sub(x, y, p)
+  | KNormal.Mul(x, y, p) -> Mul(x, y, p)
+  | KNormal.Div(x, y, p) -> Div(x, y, p)
   | KNormal.FNeg(x, p) -> FNeg(x, p)
   | KNormal.FAdd(x, y, p) -> FAdd(x, y, p)
   | KNormal.FSub(x, y, p) -> FSub(x, y, p)

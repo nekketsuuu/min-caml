@@ -11,6 +11,8 @@ let addtyp (x, _) = (x, Type.gentyp ())
 %token <Lexing.position> NOT
 %token <Lexing.position> MINUS
 %token <Lexing.position> PLUS
+%token <Lexing.position> AST
+%token <Lexing.position> SLASH
 %token <Lexing.position> MINUS_DOT
 %token <Lexing.position> PLUS_DOT
 %token <Lexing.position> AST_DOT
@@ -45,7 +47,7 @@ let addtyp (x, _) = (x, Type.gentyp ())
 %left COMMA
 %left EQUAL LESS_GREATER LESS GREATER LESS_EQUAL GREATER_EQUAL
 %left PLUS MINUS PLUS_DOT MINUS_DOT
-%left AST_DOT SLASH_DOT
+%left AST SLASH AST_DOT SLASH_DOT
 %right prec_unary_minus
 %left prec_app
 %left DOT
@@ -91,6 +93,10 @@ exp: /* (* ∞Ï»Ã§Œº∞ (caml2html: parser_exp) *) */
     { Add($1, $3, $2) }
 | exp MINUS exp
     { Sub($1, $3, $2) }
+| exp AST exp
+    { Mul($1, $3, $2) }
+| exp SLASH exp
+    { Div($1, $3, $2) }
 | exp EQUAL exp
     { Eq($1, $3, $2) }
 | exp LESS_GREATER exp

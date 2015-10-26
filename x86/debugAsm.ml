@@ -90,6 +90,8 @@ and exp_iter e =
      | Asm.Neg (id, p) -> monop_emit "Neg" id
      | Asm.Add (id, idimm, p) -> binop_imm_emit "Add" id idimm
      | Asm.Sub (id, idimm, p) -> binop_imm_emit "Sub" id idimm
+     | Asm.Mul (id, idimm, p) -> binop_imm_emit "Mul" id idimm
+     | Asm.Div (id, idimm, p) -> binop_imm_emit "Div" id idimm
      | Asm.Ld (id, idimm, i, p) ->
 	(Format.open_hbox ();
 	 Format.print_string "Ld";

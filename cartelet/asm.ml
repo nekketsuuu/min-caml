@@ -12,6 +12,8 @@ and exp = (* 一つ一つの命令に対応する式 (caml2html: sparcasm_exp) *)
   | Neg of Id.t * Lexing.position
   | Add of Id.t * id_or_imm * Lexing.position
   | Sub of Id.t * id_or_imm * Lexing.position
+  | Mul of Id.t * id_or_imm * Lexing.position
+  | Div of Id.t * id_or_imm * Lexing.position
   | Ld of Id.t * id_or_imm * int * Lexing.position
   | St of Id.t * Id.t * id_or_imm * int * Lexing.position
   | FMov of Id.t * Lexing.position
@@ -70,7 +72,7 @@ let fv_id_or_imm = function V(x) -> [x] | _ -> []
 let rec fv_exp = function
   | Nop _ | Set _ | SetL _ | Comment _ | Restore _ -> []
   | Mov(x, _) | Neg(x, _) | FMov(x, _) | FNeg(x, _) | Save(x, _, _) -> [x]
-  | Add(x, y', _) | Sub(x, y', _) | Ld(x, y', _, _) | LdF(x, y', _, _) -> x :: fv_id_or_imm y'
+  | Add(x, y', _) | Sub(x, y', _) | Mul(x, y', _) | Div(x, y', _) | Ld(x, y', _, _) | LdF(x, y', _, _) -> x :: fv_id_or_imm y'
   | St(x, y, z', _, _) | StF(x, y, z', _, _) -> x :: y :: fv_id_or_imm z'
   | FAdd(x, y, _) | FSub(x, y, _) | FMul(x, y, _) | FDiv(x, y, _) -> [x; y]
   | IfEq(x, y', e1, e2, _) | IfLE(x, y', e1, e2, _) | IfGE(x, y', e1, e2, _) -> x :: fv_id_or_imm y' @ remove_and_uniq S.empty (fv e1 @ fv e2) (* uniq here just for efficiency *)
@@ -93,7 +95,7 @@ let align i = (if i mod 4 = 0 then i else i + 4)
 let pos_of_exp = function (* Asm.expからLexing.positionを抜き出す *)
     Nop(p)
   | Set(_, p) | SetL(_, p) | Mov(_, p)
-  | Neg(_, p) | Add(_, _, p) | Sub(_, _, p)
+  | Neg(_, p) | Add(_, _, p) | Sub(_, _, p) | Mul(_, _, p) | Div(_, _, p)
   | Ld(_, _, _, p) | St(_, _, _, _, p)
   | FMov(_, p) | FNeg(_, p) | FAdd(_, _, p) | FSub(_, _, p) | FMul(_, _, p) | FDiv(_, _, p)
   | LdF(_, _, _, p) | StF(_, _, _, _, p)

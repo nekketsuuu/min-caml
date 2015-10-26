@@ -72,6 +72,14 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
       else
 	(if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\t# %d\n" y x p.Lexing.pos_lnum;
 	 Printf.fprintf oc "\tsubl\t%s, %s\t# %d\n" (pp_id_or_imm z') x p.Lexing.pos_lnum)
+  | NonTail(x), Mul(y, z', p) ->
+     assert(z' = C(4));
+     if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\t# %d\n" y x p.Lexing.pos_lnum;
+     Printf.fprintf oc "\tshl\t$2, %s\t# %d\n" x p.Lexing.pos_lnum
+  | NonTail(x), Div(y, z', p) ->
+     assert(z' = C(2));
+     if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\t# %d\n" y x p.Lexing.pos_lnum;
+     Printf.fprintf oc "\tsar\t$1, %s\t# %d\n" x p.Lexing.pos_lnum
   | NonTail(x), Ld(y, V(z), i, p) -> Printf.fprintf oc "\tmovl\t(%s,%s,%d), %s\t# %d\n" y z i x p.Lexing.pos_lnum
   | NonTail(x), Ld(y, C(j), i, p) -> Printf.fprintf oc "\tmovl\t%d(%s), %s\t# %d\n" (j * i) y x p.Lexing.pos_lnum
   | NonTail(_), St(x, y, V(z), i, p) -> Printf.fprintf oc "\tmovl\t%s, (%s,%s,%d)\t# %d\n" x y z i p.Lexing.pos_lnum

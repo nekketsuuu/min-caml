@@ -7,6 +7,8 @@ type t = (* K正規化後の式 (caml2html: knormal_t) *)
   | Neg of Id.t * Lexing.position
   | Add of Id.t * Id.t * Lexing.position
   | Sub of Id.t * Id.t * Lexing.position
+  | Mul of Id.t * Id.t * Lexing.position
+  | Div of Id.t * Id.t * Lexing.position
   | FNeg of Id.t * Lexing.position
   | FAdd of Id.t * Id.t * Lexing.position
   | FSub of Id.t * Id.t * Lexing.position
@@ -29,7 +31,7 @@ and fundef = { name : Id.t * Type.t; args : (Id.t * Type.t) list; body : t }
 let pos_of_exp = function (* KNormal.tからLexing.positionだけ抜き出す *)
     Unit p
   | Int (_, p) | Float (_, p)
-  | Neg (_, p) | Add (_, _, p) | Sub (_, _, p)
+  | Neg (_, p) | Add (_, _, p) | Sub (_, _, p) | Mul(_, _, p) | Div(_, _, p)
   | FNeg (_, p) | FAdd (_, _, p) | FSub (_, _, p) | FMul (_, _, p) | FDiv (_, _, p)
   | IfEq (_, _, _, _, p) | IfLE (_, _, _, _, p)
   | Let (_, _, _, p) | Var (_, p) | LetRec (_, _, p)
@@ -40,7 +42,7 @@ let pos_of_exp = function (* KNormal.tからLexing.positionだけ抜き出す *)
 let rec fv = function (* 式に出現する（自由な）変数 (caml2html: knormal_fv) *)
   | Unit _ | Int _ | Float _ | ExtArray _ -> S.empty
   | Neg(x, _) | FNeg(x, _) -> S.singleton x
-  | Add(x, y, _) | Sub(x, y, _) | FAdd(x, y, _) | FSub(x, y, _) | FMul(x, y, _) | FDiv(x, y, _) | Get(x, y, _) -> S.of_list [x; y]
+  | Add(x, y, _) | Sub(x, y, _) | Mul(x, y, _) | Div(x, y, _) | FAdd(x, y, _) | FSub(x, y, _) | FMul(x, y, _) | FDiv(x, y, _) | Get(x, y, _) -> S.of_list [x; y]
   | IfEq(x, y, e1, e2, _) | IfLE(x, y, e1, e2, _) -> S.add x (S.add y (S.union (fv e1) (fv e2)))
   | Let((x, t), e1, e2, _) -> S.union (fv e1) (S.remove x (fv e2))
   | Var(x, _) -> S.singleton x
@@ -78,6 +80,14 @@ let rec g env = function (* K正規化ルーチン本体 (caml2html: knormal_g) *)
       insert_let (g env e1)
 	(fun x -> insert_let (g env e2)
 	    (fun y -> Sub(x, y, p), Type.Int))
+  | Syntax.Mul(e1, e2, p) ->
+      insert_let (g env e1)
+	(fun x -> insert_let (g env e2)
+	    (fun y -> Mul(x, y, p), Type.Int))
+  | Syntax.Div(e1, e2, p) ->
+      insert_let (g env e1)
+	(fun x -> insert_let (g env e2)
+	    (fun y -> Div(x, y, p), Type.Int))
   | Syntax.FNeg(e, p) ->
       insert_let (g env e)
 	(fun x -> FNeg(x, p), Type.Float)

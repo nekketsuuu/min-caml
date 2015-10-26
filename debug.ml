@@ -128,6 +128,8 @@ and parser_iter s =
       | Syntax.Neg (t, _) -> parser_monop_emit "Neg" t
       | Syntax.Add (t0, t1, _)  -> parser_binop_emit "Add" t0 t1
       | Syntax.Sub (t0, t1, _)  -> parser_binop_emit "Sub" t0 t1
+      | Syntax.Mul (t0, t1, _)  -> parser_binop_emit "Mul" t0 t1
+      | Syntax.Div (t0, t1, _)  -> parser_binop_emit "Div" t0 t1
       | Syntax.FNeg (t, _)      -> parser_monop_emit "FNeg" t
       | Syntax.FAdd (t0, t1, _) -> parser_binop_emit "Fadd" t0 t1
       | Syntax.FSub (t0, t1, _) -> parser_binop_emit "FSub" t0 t1
@@ -328,6 +330,10 @@ and kNormal_iter s =
 	 parser_iter (Syntax.Add (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
       | KNormal.Sub (id0, id1, p) ->
 	 parser_iter (Syntax.Sub (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
+      | KNormal.Mul (id0, id1, p) ->
+	 parser_iter (Syntax.Mul (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
+      | KNormal.Div (id0, id1, p) ->
+	 parser_iter (Syntax.Div (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
       | KNormal.FNeg (id, p) -> parser_iter (Syntax.Var (id, p))
       | KNormal.FAdd (id0, id1, p) ->
 	 parser_iter (Syntax.FAdd (Syntax.Var (id0, p), Syntax.Var (id1, p), p))
@@ -524,6 +530,8 @@ and closure_iter s =
       | Closure.Neg (id, p)  -> kNormal_iter (KNormal.Neg (id, p))
       | Closure.Add (id0, id1, p)  -> kNormal_iter (KNormal.Add (id0, id1, p))
       | Closure.Sub (id0, id1, p)  -> kNormal_iter (KNormal.Sub (id0, id1, p))
+      | Closure.Mul (id0, id1, p)  -> kNormal_iter (KNormal.Mul (id0, id1, p))
+      | Closure.Div (id0, id1, p)  -> kNormal_iter (KNormal.Div (id0, id1, p))
       | Closure.FNeg (id, p)       -> kNormal_iter (KNormal.FNeg (id, p))
       | Closure.FAdd (id0, id1, p) -> kNormal_iter (KNormal.FAdd (id0, id1, p))
       | Closure.FSub (id0, id1, p) -> kNormal_iter (KNormal.FSub (id0, id1, p))

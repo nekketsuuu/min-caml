@@ -42,8 +42,8 @@ let rec source t = function
   | Ans(exp) -> source' t exp
   | Let(_, _, e) -> source t e
 and source' t = function
-  | Mov(x, _) | Neg(x, _) | Add(x, C _, _) | Sub(x, _, _) | FMovD(x, _) | FNegD(x, _) | FSubD(x, _, _) | FDivD(x, _, _) -> [x]
-  | Add(x, V y, _) | FAddD(x, y, _) | FMulD(x, y, _) -> [x; y]
+  | Mov(x, _) | Neg(x, _) | Add(x, C _, _) | Sub(x, _, _) | Mul(x, C _, _) | Div(x, _, _) | FMovD(x, _) | FNegD(x, _) | FSubD(x, _, _) | FDivD(x, _, _) -> [x]
+  | Add(x, V y, _) | FAddD(x, y, _) | Mul(x, V y, _) | FMulD(x, y, _) -> [x; y] (* Mul(x, V y, _) は無いはず *)
   | IfEq(_, _, e1, e2, _) | IfLE(_, _, e1, e2, _) | IfGE(_, _, e1, e2, _) | IfFEq(_, _, e1, e2, _) | IfFLE(_, _, e1, e2, _) ->
       source t e1 @ source t e2
   | CallCls _ | CallDir _ -> (match t with Type.Unit -> [] | Type.Float -> [fregs.(0)] | _ -> [regs.(0)])
@@ -137,6 +137,8 @@ and g' dest cont regenv = function (* 各命令のレジスタ割り当て (caml2html: regal
   | Neg(x, p) -> (Ans(Neg(find x Type.Int regenv, p)), regenv)
   | Add(x, y', p) -> (Ans(Add(find x Type.Int regenv, find' y' regenv, p)), regenv)
   | Sub(x, y', p) -> (Ans(Sub(find x Type.Int regenv, find' y' regenv, p)), regenv)
+  | Mul(x, y', p) -> (Ans(Mul(find x Type.Int regenv, find' y' regenv, p)), regenv)
+  | Div(x, y', p) -> (Ans(Div(find x Type.Int regenv, find' y' regenv, p)), regenv)
   | Ld(x, y', i, p) -> (Ans(Ld(find x Type.Int regenv, find' y' regenv, i, p)), regenv)
   | St(x, y, z', i, p) -> (Ans(St(find x Type.Int regenv, find y Type.Int regenv, find' z' regenv, i, p)), regenv)
   | FMovD(x, p) -> (Ans(FMovD(find x Type.Float regenv, p)), regenv)

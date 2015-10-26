@@ -78,6 +78,18 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
   | NonTail(x), Sub(y, C(z), p) ->
      Printf.fprintf oc "\taddi\t%s %s $%d" x y (-z); (* subi 0消さなくて良い? *)
      line oc p
+  | NonTail(x), Mul(y, z', p) ->
+     assert(z' = C(4));
+     Printf.fprintf oc "\taddi\t%s %s $2" reg_tmp reg_zero;
+     line oc p;
+     Printf.fprintf oc "\tsll\t%s %s %s" x y reg_tmp;
+     line oc p;
+  | NonTail(x), Div(y, z', p) ->
+     assert(z' = C(2));
+     Printf.fprintf oc "\taddi\t%s %s $1" reg_tmp reg_zero;
+     line oc p;
+     Printf.fprintf oc "\tsra\t%s %s %s" x y reg_tmp;
+     line oc p;
   | NonTail(x), Ld(y, V(z), i, p) ->
      assert(i = 4);
      Printf.fprintf oc "\tadd\t%s %s %s" reg_tmp y z;

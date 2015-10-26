@@ -7,6 +7,8 @@ type t = (* MinCamlの構文を表現するデータ型 (caml2html: syntax_t) *)
   | Neg of t * Lexing.position
   | Add of t * t * Lexing.position
   | Sub of t * t * Lexing.position
+  | Mul of t * t * Lexing.position
+  | Div of t * t * Lexing.position
   | FNeg of t * Lexing.position
   | FAdd of t * t * Lexing.position
   | FSub of t * t * Lexing.position

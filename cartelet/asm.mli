@@ -10,6 +10,8 @@ and exp =
   | Neg of Id.t * Lexing.position
   | Add of Id.t * id_or_imm * Lexing.position
   | Sub of Id.t * id_or_imm * Lexing.position
+  | Mul of Id.t * id_or_imm * Lexing.position
+  | Div of Id.t * id_or_imm * Lexing.position
   | Ld of Id.t * id_or_imm * int * Lexing.position
   | St of Id.t * Id.t * id_or_imm * int * Lexing.position
   | FMov of Id.t * Lexing.position

@@ -37,6 +37,10 @@ rule token = parse
     { MINUS(lexbuf.Lexing.lex_curr_p) }
 | '+' (* +.より後回しにしなくても良い? 最長一致? *)
     { PLUS(lexbuf.Lexing.lex_curr_p) }
+| '*'
+    { AST(lexbuf.Lexing.lex_curr_p) }
+| '/'
+    { SLASH(lexbuf.Lexing.lex_curr_p) }
 | "-."
     { MINUS_DOT(lexbuf.Lexing.lex_curr_p) }
 | "+."
