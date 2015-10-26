@@ -294,7 +294,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      let ss = stacksize () in
      Printf.fprintf oc "\taddi\t%s %s $%d" reg_sp reg_sp (-(ss+1));
      line oc p;
-     Printf.fprintf oc "\tst\t0(%s) %s" reg_ra reg_sp;
+     Printf.fprintf oc "\tst\t0(%s) %s" reg_sp reg_ra;
      line oc p;
      Printf.fprintf oc "\tjalr\t%s" reg_cl;
      line oc p;
@@ -318,7 +318,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
 	  let ss = stacksize () in
 	  Printf.fprintf oc "\taddi\t%s %s $%d" reg_sp reg_sp (-(ss+1));
 	  line oc p;
-	  Printf.fprintf oc "\tst\t0(%s) %s" reg_ra reg_sp;
+	  Printf.fprintf oc "\tst\t0(%s) %s" reg_sp reg_ra;
 	  line oc p;
 	  Printf.fprintf oc "\tjal\t%s" x;
 	  line oc p;
@@ -416,6 +416,20 @@ let h oc { name = Id.L(x); args = _; fargs = _; body = e; ret = _ } =
 let f oc (Prog(data, fundefs, e)) =
   Format.eprintf "generating assembly...@.";
   Printf.fprintf oc ".data\n";
+  (* constant for cos, sin, and atan *)
+  Printf.fprintf oc "min_caml_pi:\n";
+  Printf.fprintf oc "\t.long\t0x40490fdb\n";
+  Printf.fprintf oc "min_caml_float_1\n";
+  Printf.fprintf oc "\t.long\t0x3f800000\n";
+  Printf.fprintf oc "min_caml_half:^n";
+  Printf.fprintf oc "\t.long\t0x3f000000\n";
+  Printf.fprintf oc "min_caml_kernel_cos_1:\n";
+  Printf.fprintf oc "\t.long\t0xbf000000\n";
+  Printf.fprintf oc "min_caml_kernel_cos_2:\n";
+  Printf.fprintf oc "\t.long\t0x3d2aa789\n";
+  Printf.fprintf oc "min_caml_kernel_cos_3:^n";
+  Printf.fprintf oc "\t.long\t0xbab38106\n"
+  (* float table *)
   List.iter
     (fun (Id.L(x), f) ->
       Printf.fprintf oc "%s:\t# %f\n" x f;
