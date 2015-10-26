@@ -55,11 +55,11 @@ let reg_fsw = fregs.(Array.length fregs - 1) (* temporary for swap *)
 let reg_zero = "%r0" (* zero register *)
 let reg_tmp = "%r1" (* assembler temporary *)
 let reg_rv = "%r2"  (* return value 1 *)
+let reg_hp = "%r28" (* heap pointer (caml2html: sparcasm_reghp) *)
 let reg_sp = "%r29" (* stack pointer *)
 let reg_fp = "%r30" (* frame pointer *)
 let reg_ra = "%r31" (* return address *)
-let reg_hp = "min_caml_hp" (* heap pointer (caml2html: sparcasm_reghp) *)
-let is_reg x = (x.[0] = '%' || x = reg_hp)
+let is_reg x = (x.[0] = '%')
 
 (* super-tenuki *)
 let rec remove_and_uniq xs = function

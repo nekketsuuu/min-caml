@@ -20,8 +20,8 @@ let locate x =
     | y :: zs when x = y -> 0 :: List.map succ (loc zs)
     | y :: zs -> List.map succ (loc zs) in
   loc !stackmap
-let offset x = 4 * List.hd (locate x)
-let stacksize () = align (List.length !stackmap * 4)
+let offset x = 1 * List.hd (locate x)
+let stacksize () = List.length !stackmap * 1
 
 let pp_id_or_imm = function
   | V(x) -> x

@@ -54,7 +54,7 @@ test/%.cmp: test/%.res test/%.ans
 
 # デバッグ用 by nekketsuuu
 # usage: make debug LEVEL=Parser
-LEVEL = Typing
+LEVEL = Asm
 
 .PHONY: debug
 debug: del_debug $(TESTS:%=test/%.out)

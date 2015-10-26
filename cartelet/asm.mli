@@ -53,10 +53,10 @@ val reg_ra : Id.t
 val reg_zero : Id.t
 val reg_tmp : Id.t
 val reg_rv : Id.t
+val reg_hp : Id.t
 val reg_sp : Id.t
 val reg_fp : Id.t
 val reg_ra : Id.t
-val reg_hp : Id.t
 val is_reg : Id.t -> bool
 
 val fv : t -> Id.t list

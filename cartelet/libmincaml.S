@@ -5,32 +5,9 @@ min_caml_print_newline:
 	addi %r1 %r0 $10
 	send8 %r1
 	jr %r31
-.globl min_caml_print_int
-min_caml_print_int:
-	slt %r1 %r16 %r0
-	beq %r1 %r0 min_caml_print_int_positive
-	# '-' is 0x2d = 45
-	addi %r1 %r0 $45
-	send8 %r1
-min_caml_print_int_positive:
-	# 1桁ずつsend8する(* あとでやる *)
-	send8 %r16
-	jr %r31
 .globl min_caml_print_byte
 min_caml_print_byte:
 	send8 %r16
-	jr %r31
-.globl min_caml_prerr_int
-min_caml_prerr_int:
-	addi %r1 %r0 min_caml_print_int
-	jr %r1
-.globl min_caml_prerr_byte
-min_caml_prerr_byte:
-	addi %r1 %r0 min_caml_print_byte
-	jr %r1
-.globl min_caml_prerr_float
-min_caml_prerr_float:
-	# 後でやる
 	jr %r31
 .globl min_caml_read_int
 min_caml_read_int:
