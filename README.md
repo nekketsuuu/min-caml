@@ -3,7 +3,7 @@ Usage (by nekketsuuu)
 ``` bash
 $ make clean
 $ ./to_cartelet
-$ (make arcturu) # for arcturu
+$ (make arcturu) # for @arcturu
 $ make byte-code
 ```
 
@@ -12,11 +12,12 @@ You can use Tab to autocomplete :)
 If you want to print some internal expression, use
 
 ``` bash
-$ make debug [LEVEL=*lstr*]
+$ make debug [LEVEL=lstr]
 ```
 
 *lstr* is the level of internal expression (default: Asm), which is one of the below:
-    Parser, Typing, KNormal, Alpha, Iter, Closure, Virtual, Simm, RegAlloc, Asm
+
+> Parser, Typing, KNormal, Alpha, Iter, Closure, Virtual, Simm, RegAlloc, Asm
 
 ----
 
@@ -24,8 +25,11 @@ An educational compiler for a minimal subset of OCaml, written in
 ~2000 lines of OCaml.  For details, see:
 
 http://esumii.github.io/min-caml/ (Japanese Web page)
+
 http://esumii.github.io/min-caml/jpaper.pdf (Japanese academic paper)
+
 http://esumii.github.io/min-caml/index-e.html (English Web page)
+
 http://esumii.github.io/min-caml/paper.pdf (English academic paper)
 
 1. Install OCaml (http://caml.inria.fr/) if you haven't
