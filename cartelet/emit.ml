@@ -20,7 +20,7 @@ let locate x =
     | y :: zs when x = y -> 0 :: List.map succ (loc zs)
     | y :: zs -> List.map succ (loc zs) in
   loc !stackmap
-let offset x = 1 * List.hd (locate x)
+let offset x = List.hd (locate x) + 1
 let stacksize () = List.length !stackmap * 1
 
 let pp_id_or_imm = function
@@ -158,20 +158,20 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
   (* 退避の仮想命令の実装 (caml2html: emit_save) *)
   | NonTail(_), Save(x, y, p) when List.mem x allregs && not (S.mem y !stackset) ->
       save y;
-      Printf.fprintf oc "\tst\t%d(%s) %s" (offset y) reg_sp x;
+      Printf.fprintf oc "\tst\t%d(%s) %s" (-(offset y)) reg_sp x;
       line oc p
   | NonTail(_), Save(x, y, p) when List.mem x allfregs && not (S.mem y !stackset) ->
      savef y;
-     Printf.fprintf oc "\tfst\t%d(%s) %s" (offset y) reg_sp x;
+     Printf.fprintf oc "\tfst\t%d(%s) %s" (-(offset y)) reg_sp x;
      line oc p
   | NonTail(_), Save(x, y, p) -> assert (S.mem y !stackset); ()
   (* 復帰の仮想命令の実装 (caml2html: emit_restore) *)
   | NonTail(x), Restore(y, p) when List.mem x allregs ->
-      Printf.fprintf oc "\tld\t%d(%s) %s" (offset y) reg_sp x;
+      Printf.fprintf oc "\tld\t%d(%s) %s" (-(offset y)) reg_sp x;
       line oc p
   | NonTail(x), Restore(y, p) ->
       assert (List.mem x allfregs);
-      Printf.fprintf oc "\tfld\t%d(%s) %s" (offset y) reg_sp x;
+      Printf.fprintf oc "\tfld\t%d(%s) %s" (-(offset y)) reg_sp x;
       line oc p
   (* 末尾だったら計算結果を第一レジスタにセットしてret (caml2html: emit_tailret) *)
   | Tail, (Nop _ | St _ | StF _ | Comment _ | Save _ as exp) ->
@@ -306,7 +306,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
        (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv a reg_zero;
 	line oc p)
      else if List.mem a allfregs && a <> fregs.(0) then
-       (Printf.fprintf oc "\tmov.s\t%s %s" a fregs.(0);
+       (Printf.fprintf oc "\tfmov\t%s %s" a fregs.(0);
 	line oc p)
   | NonTail(a), CallDir(Id.L(x), ys, zs, p) ->
      (match x with
@@ -358,7 +358,7 @@ and g'_non_tail_if oc dest e1 e2 b reg1 reg2 p =
   let stackset_back = !stackset in
   g oc (dest, e2);
   let stackset1 = !stackset in
-  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero b_cont; (* オーバーフロー大丈夫? *)
+  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero b_cont;
   line oc p;
   Printf.fprintf oc "\tjr\t%s" reg_tmp;
   line oc p;
@@ -376,7 +376,7 @@ and g'_non_tail_if_float oc dest e1 e2 b p =
   let stackset_back = !stackset in
   g oc (dest, e2);
   let stackset1 = !stackset in
-  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero b_cont; (* オーバーフロー大丈夫? *)
+  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero b_cont;
   line oc p;
   Printf.fprintf oc "\tjr\t%s" reg_tmp;
   line oc p;
@@ -425,18 +425,18 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.long\t0x3f800000\n";
   Printf.fprintf oc "min_caml_half:^n";
   Printf.fprintf oc "\t.long\t0x3f000000\n";
-  Printf.fprintf oc "min_caml_itof_1:\n";
+  Printf.fprintf oc "min_caml_float_of_int_c1:\n";
   Printf.fprintf oc "\t.long\t0xcb000000\n";
   Printf.fprintf oc "min_caml_kernel_cos_c1:\n";
   Printf.fprintf oc "\t.long\t0xbf000000\n";
   Printf.fprintf oc "min_caml_kernel_cos_c2:\n";
   Printf.fprintf oc "\t.long\t0x3d2aa789\n";
   Printf.fprintf oc "min_caml_kernel_cos_c3:^n";
-  Printf.fprintf oc "\t.long\t0xbab38106\n"
+  Printf.fprintf oc "\t.long\t0xbab38106\n";
   Printf.fprintf oc "min_caml_kernel_sin_c1:^n";
-  Printf.fprintf oc "\t.long\t0xbe2aaaac\n"
+  Printf.fprintf oc "\t.long\t0xbe2aaaac\n";
   Printf.fprintf oc "min_caml_kernel_sin_c2:^n";
-  Printf.fprintf oc "\t.long\t0x3c088666\n"
+  Printf.fprintf oc "\t.long\t0x3c088666\n";
   Printf.fprintf oc "min_caml_kernel_sin_c3:^n";
   Printf.fprintf oc "\t.long\t0xb94d64b6\n";
   Printf.fprintf oc "min_caml_atan_c1:\n";

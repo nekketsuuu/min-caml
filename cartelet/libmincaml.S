@@ -30,8 +30,8 @@ min_caml_read_float:
 	recv8	%r2
 	sll	%r2 %r2 %r1
 	recv8	%r2
-	st	0(%r29) %r2
-	fld	0(%r29) %f0
+	st	-1(%r29) %r2
+	fld	-1(%r29) %f0
 	jr	%r31
 # create_array
 min_caml_create_array:
@@ -86,11 +86,68 @@ min_caml_truncate:
 	jr	%r31
 # float_of_int
 min_caml_float_of_int:
+	addi	%r8 %r0 $838860
+	slt	%r9 %r16 %r8
+	beq	%r9 %r0 min_caml_float_of_int_big
+	# |x| < 838860
+	# 838860を足して838860.0fを引く
+	# r8: const or addr, r9: temp, r16: x
+	# f0: answer
+	add	%r9 %r16 %r8
+	st	-1(%r29) %r9
+	fld	-1(%r29) %f0
+	addi	%r8 %r0 min_caml_float_of_int_c1
+	fld	0(%r8) %f1
+	addi	%f0 %f0 %f1
+	jr	%r31
+min_caml_float_of_int_big:
+	# |x| >= 838860
+	# x = m*838860 + nとしてitof(m)*838860+itof(n)を求める
+	# r8: x or n, r9: m, r10: 838860, r11: -838860, r12: temp, r16: x
+	# f0: answer
+	add	%r8 %r0 %r16
+	add	%r9 %r0 %r0
+	addi	%r10 %r0 $838860
+	addi	%r11 %r0 $-838860
+min_caml_float_of_int_big_loop:
+	addi	%r9 %r9 $1
+	add	%r8 %r8 %r11
+	slt	%r12 %r10 %r8
+	beq	%r12 %r0 min_caml_float_of_int_big_loop
+	st	-1(%r29) %r8
+	st	-2(%r29) %r9
+	st	-3(%r29) %r16
+	addi	%r29 %r29 $-4
+	st	0(%r29) %r31
+	add	%r16 %r0 %r9
+	jal	min_caml_float_of_int
+	ld	0(%r29) %r31
+	addi	%r29 %r29 $4
+	fst	-4(%r29) %f0
+	addi	%r29 %r29 $-5
+	st	0(%r29) %r31
+	addi	%r16 %r0 $838860
+	jal	min_caml_float_of_int
+	ld	0(%r29) %r31
+	addi	%r29 %r29 $5
+	fld	-4(%r29) %f1
+	ld	-3(%r29) %r16
+	ld	-2(%r29) %r9
+	fmov	%f2 %f0
+	addi	%r9 %r9 $-1
+	addi	%r8 %r0 min_caml_float_of_int_sum_m_loop
+min_caml_float_of_int_sum_m_loop:
+	beq	%r9 %r0 min_caml_float_of_int_sum_m_exit
+	fadd	%f2 %f2 %f0
+	addi	%r9 %r9 $-1
+	jr	%r8
+min_caml_float_of_int_sum_m_exit:
+	fadd	%f0 %f1 %f2
 	jr	%r31
 # cos
 min_caml_cos:
 	# 定義域を[0, 2pi)にする
-	# r8: FLAG
+	# r8: FLAG, r9: addr
 	# f0: x, f1: pi, f2: 0.5, f3: temp(pi/2), f4: temp
 	fabs	%f0 %f0
 	addi	%r29 %r29 $-1
@@ -131,7 +188,7 @@ min_caml_cos_3:
 	jr	min_caml_kernal_sin
 min_caml_kernel_cos:
 	# Tayler展開で計算する
-	# r8: flag
+	# r8: flag, r9: addr
 	# f0: answer, f1: x^2, f2: x^4, f3: const or product
 	fmul	%f1 %f0 %f0
 	addi	%r9 %r0 min_caml_float_1
@@ -160,7 +217,7 @@ min_caml_kernel_cos_positive:
 # sin
 min_caml_sin:
 	# 定義域を[0, 2pi)にする
-	# r8: FLAG
+	# r8: FLAG, r9: addr
 	# f0: x, f1: pi, f2: 0.5, f3: temp(pi/2), f4: temp
 	addi	%r9 min_caml_float_0
 	fld	0(%r9) %f1
@@ -209,7 +266,7 @@ min_caml_sin_3:
 	jr	min_caml_kernal_cos
 min_caml_kernel_sin:
 	# Tayler展開で計算する
-	# r8: flag
+	# r8: flag, r9: addr
 	# f0: answer, f1: x^2, f2: x^3, f3: const or product
 	fmul	%f1 %f0 %f0
 	fmul	%f2 %f1 %f0
@@ -257,7 +314,7 @@ min_caml_reduction_2pi_exit:
 	jr	%r31
 # atan
 min_caml_atan:
-	# r8: FLAG
+	# r8: FLAG, r9: addr
 	# f0: x, f1: pi, f2: 0.5, f3: temp(pi/4, pi/2), f4: temp, f5: temp
 	addi	%r9 min_caml_float_0
 	fld	0(%r9) %f1
@@ -340,7 +397,7 @@ min_caml_atan_3:
 	jr	%r31
 min_caml_kernel_atan:
 	# Tayler展開で計算する
-	# r8には触らないようにする
+	# r8には触らないようにする, r9: addr
 	# f0: answer, f1: x^2, f2: x^i, f3: const or product
 	fmul	%f1 %f0 %f0
 	fmul	%f2 %f0 %f1
