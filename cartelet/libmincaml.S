@@ -4,7 +4,8 @@ min_caml_print_newline:
 	addi	%r1 %r0 $10
 	send8	%r1
 	jr	%r31
-# print_char
+# print_char (print_byte)
+min_caml_print_byte:
 min_caml_print_char:
 	send8	%r16
 	jr	%r31
@@ -165,13 +166,24 @@ min_caml_sin:
 	# 定義域を[0, 2pi)にする
 	# r8: FLAG
 	# f0: x, f1: pi, f2: 0.5, f3: temp(pi/2), f4: temp
+	addi	%r9 min_caml_float_0
+	fld	0(%r9) %f1
+	fslt	%f0 %f1
+	bclt	min_caml_sin_flag_negative
+	addi	%r8 %r0 $0
+	addi	%r9 min_caml_sin_after_flag
+	jr	%r9
+min_caml_sin_flag_negative:
+	addi	%r8 %r0 $1
+min_caml_sin_after_flag:
 	fabs	%f0 %f0
-	addi	%r29 %r29 $-1
+	st	-1(%r29) %r8
+	addi	%r29 %r29 $-2
 	st	0(%r29) %r31
 	jal	min_caml_reduction_2pi
 	ld	0(%r29) %r31
-	addi	%r29 %r29 $1
-	addi	%r8 %r0 $0
+	addi	%r29 %r29 $2
+	ld	-1(%r29) %r8
 	# x >= piならx := x - pi, FLAG reverse
 	addi	%r9 %r0 min_caml_pi
 	fld	0(%r9) %f1
@@ -243,20 +255,126 @@ min_caml_reduction_2pi_cont:
 	bclt	min_caml_reduction_2pi_after_if
 	fneg	%f4 %f3
 	fadd	%f0 %f4
-min_caml_reduction_2pi_after_if
+min_caml_reduction_2pi_after_if:
 	fmul	%f3 %f3 %f2
 min_caml_reduction_2pi_exit:
 	jr	%r31
 # atan
 min_caml_atan:
-	pushl	%ebp
-	movl	%esp, %ebp
-	ALIGNSTACK2
-	subl	$8, %esp
-	movsd	%xmm0, (%esp)
-	call	U(atan)
-	fstpl	(%esp)
-	movsd	(%esp), %xmm0
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
+	# r8: FLAG
+	# f0: x, f1: pi, f2: 0.5, f3: temp(pi/4, pi/2), f4: temp, f5: temp
+	addi	%r9 min_caml_float_0
+	fld	0(%r9) %f1
+	fslt	%f0 %f1
+	bclt	min_caml_atan_flag_negative
+	addi	%r8 %r0 $0
+	addi	%r9 min_caml_atan_after_flag
+	jr	%r9
+min_caml_atan_flag_negative:
+	addi	%r8 %r0 $1
+min_caml_atan_after_flag:
+	fabs	%f0 %f0
+	addi	%r9 %r0 min_caml_atan_b1
+	fld	0(%9) %f4
+	fslt	%f0 %f4
+	bclf	min_caml_atan_2
+	# |x| < 0.4375
+	# kernel_atan(|x|)を返す
+	addi	%r29 %r29 $-1
+	st	0(%r29) %r31
+	jal	min_caml_kernel_atan
+	ld	0(%r29) %r31
+	addi	%r29 %r29 $1
+	beq	%r8 %r0 min_caml_atan_positive
+	fabs	%f0 %f0
+	fneg	%f0 %f0
+	jr	%r31
+min_caml_atan_positive:
+	fabs	%f0 %f0
+	jr	%r31
+min_caml_atan_2:
+	addi	%r9 %r0 min_caml_atan_b2
+	fld	0(%r9) %f4
+	fslt	%f0 %f4
+	bclf	min_caml_atan_3
+	# 0.4375 <= |x| < 2.4375
+	# pi/4 + kernel_atan((|x|+1)/(|x|-1)) = kernel_atan(|x|)を返す
+	addi	%r9 %r0 min_caml_float_1
+	fld	0(%r9) %f3
+	fadd	%f4 %f0 %f3
+	fneg	%f3 %f3
+	fadd	%f5 %f0 %f3
+	finv	%f5 %f5
+	fmul	%f0 %f4 %f5
+	addi	%r29 %r29 $-1
+	st	0(%r29) %r31
+	jal	min_caml_kernel_atan
+	ld	0(%r29) %r31
+	addi	%r29 %r29 $1
+	addi	%r9 %r0 min_caml_pi
+	fld	0(%r9) %f1
+	addi	%r9 %r0 min_caml_half
+	fld	0(%r9) %f2
+	fmul	%f3 %f1 %f2
+	fmul	%f3 %f3 %f2
+	fadd	%f0 %f0 %f3
+	beq	%r8 %r0 min_caml_atan_positive
+	fabs	%f0 %f0
+	fneg	%f0 %f0
+	jr	%r31
+min_caml_atan_3:
+	# |x| >= 2.4375
+	# pi/2 - kernel_atan(1/|x|) = kernel_atan(|x|)を返す
+	finv	%f0 %f0
+	addi	%r29 %r29 $-1
+	st	0(%r29) %r31
+	jal	min_caml_kernel_atan
+	ld	0(%r29) %r31
+	addi	%r29 %r29 $1
+	fneg	%f4 %f0
+	addi	%r9 %r0 min_caml_pi
+	fld	0(%r9) %f1
+	addi	%r9 %r0 min_caml_half
+	fld	0(%r9) %f2
+	fmul	%f0 %f1 %f2
+	fadd	%f0 %f0 %f4
+	beq	%r8 %r0 min_caml_atan_positive
+	fabs	%f0 %f0
+	fneg	%f0 %f0
+	jr	%r31
+min_caml_kernel_atan:
+	# Tayler展開で計算する
+	# r8には触らないようにする
+	# f0: answer, f1: x^2, f2: x^i, f3: const or product
+	fmul	%f1 %f0 %f0
+	fmul	%f2 %f0 %f1
+	addi	%r9 %r0 min_caml_kernel_atan_1
+	fld	0(%r9) %f3
+	fmul	%f3 %f3 %f2
+	fadd	%f0 %f3
+	fmul	%f2 %f0 %f1
+	addi	%r9 %r0 min_caml_kernel_atan_2
+	fld	0(%r9) %f3
+	fmul	%f3 %f3 %f2
+	fadd	%f0 %f3
+	fmul	%f2 %f0 %f1
+	addi	%r9 %r0 min_caml_kernel_atan_3
+	fld	0(%r9) %f3
+	fmul	%f3 %f3 %f2
+	fadd	%f0 %f3
+	fmul	%f2 %f0 %f1
+	addi	%r9 %r0 min_caml_kernel_atan_4
+	fld	0(%r9) %f3
+	fmul	%f3 %f3 %f2
+	fadd	%f0 %f3
+	fmul	%f2 %f0 %f1
+	addi	%r9 %r0 min_caml_kernel_atan_5
+	fld	0(%r9) %f3
+	fmul	%f3 %f3 %f2
+	fadd	%f0 %f3
+	fmul	%f2 %f0 %f1
+	addi	%r9 %r0 min_caml_kernel_atan_6
+	fld	0(%r9) %f3
+	fmul	%f3 %f3 %f2
+	fadd	%f0 %f3
+	jr	%r31

@@ -419,7 +419,9 @@ let f oc (Prog(data, fundefs, e)) =
   (* constant for cos, sin, and atan *)
   Printf.fprintf oc "min_caml_pi:\n";
   Printf.fprintf oc "\t.long\t0x40490fdb\n";
-  Printf.fprintf oc "min_caml_float_1\n";
+  Printf.fprintf oc "min_caml_float_0:\n";
+  Printf.fprintf oc "\t.long\t0x00000000\n";
+  Printf.fprintf oc "min_caml_float_1:\n";
   Printf.fprintf oc "\t.long\t0x3f800000\n";
   Printf.fprintf oc "min_caml_half:^n";
   Printf.fprintf oc "\t.long\t0x3f000000\n";
@@ -434,7 +436,23 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "min_caml_kernel_sin_2:^n";
   Printf.fprintf oc "\t.long\t0x3c088666\n"
   Printf.fprintf oc "min_caml_kernel_sin_3:^n";
-  Printf.fprintf oc "\t.long\t0xb94d64b6\n"
+  Printf.fprintf oc "\t.long\t0xb94d64b6\n";
+  Printf.fprintf oc "min_caml_atan_b1:\n";
+  Printf.fprintf oc "\t.long\t0x3ee00000\n";
+  Printf.fprintf oc "min_caml_atan_b2:\n";
+  Printf.fprintf oc "\t.long\t0x401c0000\n";
+  Printf.fprintf oc "min_caml_kernel_atan_1:\n";
+  Printf.fprintf oc "\t.long\t0xbeaaaaaa\n";
+  Printf.fprintf oc "min_caml_kernel_atan_2:\n";
+  Printf.fprintf oc "\t.long\t0x3e4ccccd\n";
+  Printf.fprintf oc "min_caml_kernel_atan_3:\n";
+  Printf.fprintf oc "\t.long\t0xbe124925\n";
+  Printf.fprintf oc "min_caml_kernel_atan_4:\n";
+  Printf.fprintf oc "\t.long\t0x3de38e38\n";
+  Printf.fprintf oc "min_caml_kernel_atan_5:\n";
+  Printf.fprintf oc "\t.long\t0xbdb7d66e\n";
+  Printf.fprintf oc "min_caml_kernel_atan_6:\n";
+  Printf.fprintf oc "\t.long\t0x3d75e7c5\n";
   (* float table *)
   List.iter
     (fun (Id.L(x), f) ->
