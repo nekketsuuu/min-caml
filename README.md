@@ -1,15 +1,19 @@
 Usage (by nekketsuuu)
 
+``` bash
 $ make clean
 $ ./to_cartelet
 $ (make arcturu) # for arcturu
 $ make byte-code
+```
 
 You can use Tab to autocomplete :)
 
 If you want to print some internal expression, use
 
+``` bash
 $ make debug [LEVEL=*lstr*]
+```
 
 *lstr* is the level of internal expression (default: Asm), which is one of the below:
     Parser, Typing, KNormal, Alpha, Iter, Closure, Virtual, Simm, RegAlloc, Asm
