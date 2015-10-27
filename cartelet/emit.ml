@@ -425,33 +425,35 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.long\t0x3f800000\n";
   Printf.fprintf oc "min_caml_half:^n";
   Printf.fprintf oc "\t.long\t0x3f000000\n";
-  Printf.fprintf oc "min_caml_kernel_cos_1:\n";
+  Printf.fprintf oc "min_caml_itof_1:\n";
+  Printf.fprintf oc "\t.long\t0xcb000000\n";
+  Printf.fprintf oc "min_caml_kernel_cos_c1:\n";
   Printf.fprintf oc "\t.long\t0xbf000000\n";
-  Printf.fprintf oc "min_caml_kernel_cos_2:\n";
+  Printf.fprintf oc "min_caml_kernel_cos_c2:\n";
   Printf.fprintf oc "\t.long\t0x3d2aa789\n";
-  Printf.fprintf oc "min_caml_kernel_cos_3:^n";
+  Printf.fprintf oc "min_caml_kernel_cos_c3:^n";
   Printf.fprintf oc "\t.long\t0xbab38106\n"
-  Printf.fprintf oc "min_caml_kernel_sin_1:^n";
+  Printf.fprintf oc "min_caml_kernel_sin_c1:^n";
   Printf.fprintf oc "\t.long\t0xbe2aaaac\n"
-  Printf.fprintf oc "min_caml_kernel_sin_2:^n";
+  Printf.fprintf oc "min_caml_kernel_sin_c2:^n";
   Printf.fprintf oc "\t.long\t0x3c088666\n"
-  Printf.fprintf oc "min_caml_kernel_sin_3:^n";
+  Printf.fprintf oc "min_caml_kernel_sin_c3:^n";
   Printf.fprintf oc "\t.long\t0xb94d64b6\n";
-  Printf.fprintf oc "min_caml_atan_b1:\n";
+  Printf.fprintf oc "min_caml_atan_c1:\n";
   Printf.fprintf oc "\t.long\t0x3ee00000\n";
-  Printf.fprintf oc "min_caml_atan_b2:\n";
+  Printf.fprintf oc "min_caml_atan_c2:\n";
   Printf.fprintf oc "\t.long\t0x401c0000\n";
-  Printf.fprintf oc "min_caml_kernel_atan_1:\n";
+  Printf.fprintf oc "min_caml_kernel_atan_c1:\n";
   Printf.fprintf oc "\t.long\t0xbeaaaaaa\n";
-  Printf.fprintf oc "min_caml_kernel_atan_2:\n";
+  Printf.fprintf oc "min_caml_kernel_atan_c2:\n";
   Printf.fprintf oc "\t.long\t0x3e4ccccd\n";
-  Printf.fprintf oc "min_caml_kernel_atan_3:\n";
+  Printf.fprintf oc "min_caml_kernel_atan_c3:\n";
   Printf.fprintf oc "\t.long\t0xbe124925\n";
-  Printf.fprintf oc "min_caml_kernel_atan_4:\n";
+  Printf.fprintf oc "min_caml_kernel_atan_c4:\n";
   Printf.fprintf oc "\t.long\t0x3de38e38\n";
-  Printf.fprintf oc "min_caml_kernel_atan_5:\n";
+  Printf.fprintf oc "min_caml_kernel_atan_c5:\n";
   Printf.fprintf oc "\t.long\t0xbdb7d66e\n";
-  Printf.fprintf oc "min_caml_kernel_atan_6:\n";
+  Printf.fprintf oc "min_caml_kernel_atan_c6:\n";
   Printf.fprintf oc "\t.long\t0x3d75e7c5\n";
   (* float table *)
   List.iter
