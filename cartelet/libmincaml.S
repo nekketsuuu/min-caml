@@ -189,23 +189,21 @@ min_caml_cos_3:
 min_caml_kernel_cos:
 	# Tayler展開で計算する
 	# r8: flag, r9: addr
-	# f0: answer, f1: x^2, f2: x^4, f3: const or product
+	# f0: answer, f1: x^2, f3: const
 	fmul	%f1 %f0 %f0
-	addi	%r9 %r0 min_caml_float_1
-	fld	0(%r9) %f0
-	addi	%r9 %r0 min_caml_kernel_cos_c1
-	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f1
-	fadd	%f0 %f0 %f3
-	fmul	%f2 %f1 %f1
-	addi	%r9 %r0 min_caml_kernel_cos_c2
-	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f2
-	fadd	%f0 %f0 %f3
-	fmul	%f2 %f1 %f2
 	addi	%r9 %r0 min_caml_kernel_cos_c3
 	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f2
+	fmul	%f0 %f3 %f1
+	addi	%r9 %r0 min_caml_kernel_cos_c2
+	fld	0(%r9) %f3
+	fadd	%f0 %f0 %f3
+	fmul	%f0 %f0 %f2
+	addi	%r9 %r0 min_caml_kernel_cos_c1
+	fld	0(%r9) %f3
+	fadd	%f0 %f0 %f2
+	fmul	%f0 %f0 %f1
+	addi	%r9 %r0 min_caml_float_1
+	fld	0(%r9) %f3
 	fadd	%f0 %f0 %f3
 	beq	%r8 %r0 min_caml_kernel_cos_positive
 	fabs	%f0 %f0
@@ -267,23 +265,20 @@ min_caml_sin_3:
 min_caml_kernel_sin:
 	# Tayler展開で計算する
 	# r8: flag, r9: addr
-	# f0: answer, f1: x^2, f2: x^3, f3: const or product
-	fmul	%f1 %f0 %f0
-	fmul	%f2 %f1 %f0
-	addi	%r9 %r0 min_caml_sin_c1
-	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f2
-	fadd	%f0 %f0 %f3
-	fmul	%f2 %f2 %f1
-	addi	%r9 %r0 min_caml_sin_c2
-	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f2
-	fadd	%f0 %f0 %f3
-	fmul	%f2 %f2 %f1
+	# f0: x or answer, f1: temp, f2: x^2, f3: const
+	fmul	%f2 %f0 %f0
 	addi	%r9 %r0 min_caml_sin_c3
 	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f2
-	fadd	%f0 %f0 %f3
+	fmul	%f1 %f3 %f2
+	addi	%r9 %r0 min_caml_sin_c2
+	fld	0(%r9) %f3
+	fadd	%f1 %f1 %f3
+	fmul	%f1 %f1 %f2
+	addi	%r9 %r0 min_caml_sin_c1
+	fld	0(%r9) %f3
+	fadd	%f1 %f1 %f3
+	fmul	%f1 %f1 %f2
+	fmul	%f0 %f1 %f0
 	beq	%r8 %r0 min_caml_kernel_sin_positive
 	fabs	%f0 %f0
 	fneg	%f0 %f0
@@ -398,36 +393,30 @@ min_caml_atan_3:
 min_caml_kernel_atan:
 	# Tayler展開で計算する
 	# r8には触らないようにする, r9: addr
-	# f0: answer, f1: x^2, f2: x^i, f3: const or product
-	fmul	%f1 %f0 %f0
-	fmul	%f2 %f0 %f1
-	addi	%r9 %r0 min_caml_kernel_atan_c1
-	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f2
-	fadd	%f0 %f3
-	fmul	%f2 %f0 %f1
-	addi	%r9 %r0 min_caml_kernel_atan_c2
-	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f2
-	fadd	%f0 %f3
-	fmul	%f2 %f0 %f1
-	addi	%r9 %r0 min_caml_kernel_atan_c3
-	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f2
-	fadd	%f0 %f3
-	fmul	%f2 %f0 %f1
-	addi	%r9 %r0 min_caml_kernel_atan_c4
-	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f2
-	fadd	%f0 %f3
-	fmul	%f2 %f0 %f1
-	addi	%r9 %r0 min_caml_kernel_atan_c5
-	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f2
-	fadd	%f0 %f3
-	fmul	%f2 %f0 %f1
+	# f0: x or answer, f1: temp, f2: x^2, f3: const
+	fmul	%f2 %f0 %f0
 	addi	%r9 %r0 min_caml_kernel_atan_c6
 	fld	0(%r9) %f3
-	fmul	%f3 %f3 %f2
-	fadd	%f0 %f3
+	fmul	%f1 %f3 %f2
+	addi	%r9 %r0 min_caml_kernel_atan_c5
+	fld	0(%r9) %f3
+	fadd	%f1 %f1 %f3
+	fmul	%f1 %f1 %f2
+	addi	%r9 %r0 min_caml_kernel_atan_c4
+	fld	0(%r9) %f3
+	fadd	%f1 %f1 %f3
+	fmul	%f1 %f1 %f2
+	addi	%r9 %r0 min_caml_kernel_atan_c3
+	fld	0(%r9) %f3
+	fadd	%f1 %f1 %f3
+	fmul	%f1 %f1 %f2
+	addi	%r9 %r0 min_caml_kernel_atan_c2
+	fld	0(%r9) %f3
+	fadd	%f1 %f1 %f3
+	fmul	%f1 %f1 %f2
+	addi	%r9 %r0 min_caml_kernel_atan_c1
+	fld	0(%r9) %f3
+	fadd	%f1 %f1 %f3
+	fmul	%f1 %f1 %f2
+	fmul	%f0 %f1 %f0
 	jr	%r31
