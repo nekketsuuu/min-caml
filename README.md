@@ -19,6 +19,12 @@ $ make debug [LEVEL=lstr]
 
 > Parser, Typing, KNormal, Alpha, Iter, Closure, Virtual, Simm, RegAlloc, Asm
 
+If you forget this list, type:
+
+```bash
+$ make debuglist
+```
+
 ----
 
 An educational compiler for a minimal subset of OCaml, written in
