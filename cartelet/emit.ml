@@ -429,11 +429,11 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.long\t0x00000000\n";
   Printf.fprintf oc "min_caml_float_1:\n";
   Printf.fprintf oc "\t.long\t0x3f800000\n";
-  Printf.fprintf oc "min_caml_half:\n";
+  Printf.fprintf oc "min_caml_float_half:\n";
   Printf.fprintf oc "\t.long\t0x3f000000\n";
-  Printf.fprintf oc "min_caml_float_of_int_c1:\n";
+  Printf.fprintf oc "min_caml_float_int_c1:\n";
   Printf.fprintf oc "\t.long\t0xcb000000\n"; (* (float)(-838860) *)
-  Printf.fprintf oc "min_caml_float_of_int_c1:\n";
+  Printf.fprintf oc "min_caml_float_int_c2:\n";
   Printf.fprintf oc "\t.long\t0x4b000000\n"; (* (float)(838860) *)
   Printf.fprintf oc "min_caml_kernel_cos_c1:\n";
   Printf.fprintf oc "\t.long\t0xbf000000\n";
