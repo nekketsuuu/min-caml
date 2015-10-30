@@ -283,6 +283,9 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
       | "min_caml_abs_float" ->
 	 (Printf.fprintf oc "\tfabs\t%s %s" (List.hd ys) (List.hd zs);
 	  line oc p)
+      | "min_caml_sqrt" ->
+	 (Printf.fprintf oc "\tfsqrt\t%s %s" (List.hd ys) (List.hd zs);
+	  line oc p)
       | _ ->
 	 (g'_args oc [] ys zs p;
 	  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero x;
@@ -313,6 +316,9 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
       | "min_caml_abs_float" ->
 	 (Printf.fprintf oc "\tfabs\t%s %s" reg_rv (List.hd zs);
 	  line oc p)
+      | "min_caml_sqrt" ->
+	 (Printf.fprintf oc "\tfsqrt\t%s %s" reg_rv (List.hd zs);
+	  line oc p);
       | _ ->
 	 (g'_args oc [] ys zs p;
 	  let ss = stacksize () in

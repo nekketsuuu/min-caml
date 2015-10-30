@@ -61,11 +61,6 @@ min_caml_create_array_loop:
 	jr	%r1
 min_caml_create_array_exit:
 	jr	%r31
-# fsqrt
-min_caml_sqrt:
-	# 後回し
-	sqrtsd	%xmm0, %xmm0
-	ret
 # ffloor
 min_caml_floor:
 	# 後回し
