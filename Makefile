@@ -39,7 +39,7 @@ muldiv float
 do_test: $(TESTS:%=test/%.cmp)
 
 .PRECIOUS: test/%.s test/% test/%.res test/%.ans test/%.cmp test/%.out
-TRASH = $(TESTS:%=test/%.s) $(TESTS:%=test/%) $(TESTS:%=test/%.res) $(TESTS:%=test/%.ans) $(TESTS:%=test/%.cmp) $(TESTS:%=test/%.out)
+TRASH = $(TESTS:%=test/%.s) $(TESTS:%=test/%) $(TESTS:%=test/%.res) $(TESTS:%=test/%.ans) $(TESTS:%=test/%.cmp) $(TESTS:%=test/%.out) $(TESTS:%=test/%.cat.ml)
 
 test/%.s: $(RESULT) test/%.ml
 	./$(RESULT) test/$*
@@ -60,7 +60,8 @@ LEVEL = Asm
 debug: del_debug $(TESTS:%=test/%.out)
 
 test/%.out: $(RESULT) test/%.ml
-	./$(RESULT) -debug $(LEVEL) test/$*
+	@cat libminrt.ml.head test/$*.ml > test/$*.cat.ml
+	./$(RESULT) -debug $(LEVEL) test/$*.cat
 
 .PHONY: del_debug
 del_debug:

@@ -46,8 +46,10 @@
 /test/*
 !/test/*.ml
 !/test/*.c
+/test/*.cat.ml
 /error_test/*
 !/error_test/*.ml
+/error_test/*.cat.ml
 
 # my OCaml top-level for debugging
 /cartelet/ocamld

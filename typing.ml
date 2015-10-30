@@ -125,10 +125,6 @@ let rec g env e = (* 型推論ルーチン (caml2html: typing_g) *)
        (match x with
 	| "fneg" | "fabs" | "fhalf" | "fsqr" | "abs_float" | "sqrt" | "floor" | "cos" | "sin" | "atan"
 	  -> t := Type.Fun([Type.Float], Type.Float)
-	| "fless"
-	  -> t := Type.Fun([Type.Float; Type.Float], Type.Bool)
-	| "fispos" | "fisneg" | "fiszero"
-	  -> t := Type.Fun([Type.Float], Type.Bool)
 	| "int_of_float" | "truncate"
           -> t := Type.Fun([Type.Float], Type.Int)
 	| "float_of_int"
