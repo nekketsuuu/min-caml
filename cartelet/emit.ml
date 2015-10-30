@@ -439,38 +439,41 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.long\t0xbf800000\n";
   Printf.fprintf oc "min_caml_float_half:\n";
   Printf.fprintf oc "\t.long\t0x3f000000\n";
-  Printf.fprintf oc "min_caml_float_int_c1:\n";
-  Printf.fprintf oc "\t.long\t0xcb000000\n"; (* (float)(-838860) *)
-  Printf.fprintf oc "min_caml_float_int_c2:\n";
-  Printf.fprintf oc "\t.long\t0x4b000000\n"; (* (float)(838860) *)
-  Printf.fprintf oc "min_caml_kernel_cos_c1:\n";
-  Printf.fprintf oc "\t.long\t0xbf000000\n";
-  Printf.fprintf oc "min_caml_kernel_cos_c2:\n";
-  Printf.fprintf oc "\t.long\t0x3d2aa789\n";
-  Printf.fprintf oc "min_caml_kernel_cos_c3:\n";
-  Printf.fprintf oc "\t.long\t0xbab38106\n";
-  Printf.fprintf oc "min_caml_kernel_sin_c1:\n";
-  Printf.fprintf oc "\t.long\t0xbe2aaaac\n";
-  Printf.fprintf oc "min_caml_kernel_sin_c2:\n";
-  Printf.fprintf oc "\t.long\t0x3c088666\n";
-  Printf.fprintf oc "min_caml_kernel_sin_c3:\n";
-  Printf.fprintf oc "\t.long\t0xb94d64b6\n";
-  Printf.fprintf oc "min_caml_atan_c1:\n";
-  Printf.fprintf oc "\t.long\t0x3ee00000\n";
-  Printf.fprintf oc "min_caml_atan_c2:\n";
-  Printf.fprintf oc "\t.long\t0x401c0000\n";
-  Printf.fprintf oc "min_caml_kernel_atan_c1:\n";
-  Printf.fprintf oc "\t.long\t0xbeaaaaaa\n";
-  Printf.fprintf oc "min_caml_kernel_atan_c2:\n";
-  Printf.fprintf oc "\t.long\t0x3e4ccccd\n";
-  Printf.fprintf oc "min_caml_kernel_atan_c3:\n";
-  Printf.fprintf oc "\t.long\t0xbe124925\n";
-  Printf.fprintf oc "min_caml_kernel_atan_c4:\n";
-  Printf.fprintf oc "\t.long\t0x3de38e38\n";
-  Printf.fprintf oc "min_caml_kernel_atan_c5:\n";
-  Printf.fprintf oc "\t.long\t0xbdb7d66e\n";
-  Printf.fprintf oc "min_caml_kernel_atan_c6:\n";
-  Printf.fprintf oc "\t.long\t0x3d75e7c5\n";
+  (if (M.mem "int_of_float" !(Typing.extenv)) || (M.mem "truncate" !(Typing.extenv)) || (M.mem "float_of_int" !(Typing.extenv)) then
+     (Printf.fprintf oc "min_caml_float_int_c1:\n";
+      Printf.fprintf oc "\t.long\t0xcb000000\n"; (* (float)(-838860) *)
+      Printf.fprintf oc "min_caml_float_int_c2:\n";
+      Printf.fprintf oc "\t.long\t0x4b000000\n" (* (float)(838860) *)));
+  (if (M.mem "cos" !(Typing.extenv)) || (M.mem "sin" !(Typing.extenv)) then
+     (Printf.fprintf oc "min_caml_kernel_cos_c1:\n";
+      Printf.fprintf oc "\t.long\t0xbf000000\n";
+      Printf.fprintf oc "min_caml_kernel_cos_c2:\n";
+      Printf.fprintf oc "\t.long\t0x3d2aa789\n";
+      Printf.fprintf oc "min_caml_kernel_cos_c3:\n";
+      Printf.fprintf oc "\t.long\t0xbab38106\n";
+      Printf.fprintf oc "min_caml_kernel_sin_c1:\n";
+      Printf.fprintf oc "\t.long\t0xbe2aaaac\n";
+      Printf.fprintf oc "min_caml_kernel_sin_c2:\n";
+      Printf.fprintf oc "\t.long\t0x3c088666\n";
+      Printf.fprintf oc "min_caml_kernel_sin_c3:\n";
+      Printf.fprintf oc "\t.long\t0xb94d64b6\n"));
+  (if M.mem "atan" !(Typing.extenv) then
+     (Printf.fprintf oc "min_caml_atan_c1:\n";
+      Printf.fprintf oc "\t.long\t0x3ee00000\n";
+      Printf.fprintf oc "min_caml_atan_c2:\n";
+      Printf.fprintf oc "\t.long\t0x401c0000\n";
+      Printf.fprintf oc "min_caml_kernel_atan_c1:\n";
+      Printf.fprintf oc "\t.long\t0xbeaaaaaa\n";
+      Printf.fprintf oc "min_caml_kernel_atan_c2:\n";
+      Printf.fprintf oc "\t.long\t0x3e4ccccd\n";
+      Printf.fprintf oc "min_caml_kernel_atan_c3:\n";
+      Printf.fprintf oc "\t.long\t0xbe124925\n";
+      Printf.fprintf oc "min_caml_kernel_atan_c4:\n";
+      Printf.fprintf oc "\t.long\t0x3de38e38\n";
+      Printf.fprintf oc "min_caml_kernel_atan_c5:\n";
+      Printf.fprintf oc "\t.long\t0xbdb7d66e\n";
+      Printf.fprintf oc "min_caml_kernel_atan_c6:\n";
+      Printf.fprintf oc "\t.long\t0x3d75e7c5\n"));
   (* float table *)
   List.iter
     (fun (Id.L(x), f) ->
