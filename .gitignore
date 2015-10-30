@@ -42,6 +42,9 @@
 
 /raytracer/min-rt
 /raytracer/min-rt_b
+/raytracer/min-rt.cat.ml
+/raytracer/*.s
+/raytracer/*.out
 
 /test/*
 !/test/*.ml

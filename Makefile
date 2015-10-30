@@ -28,6 +28,8 @@ simm.mli simm.ml regAlloc.mli regAlloc.ml emit.mli emit.ml \
 debug.mli debug.ml debugAsm.mli debugAsm.ml \
 main.mli main.ml
 
+HEADERS = raytracer/globals.ml.head libminrt.ml.head
+
 # ↓テストプログラムが増えたら、これも増やす
 TESTS = print sum-tail gcd sum fib ack even-odd \
 adder funcomp cls-rec cls-bug cls-bug2 \
@@ -59,8 +61,8 @@ LEVEL = Asm
 .PHONY: debug
 debug: del_debug $(TESTS:%=test/%.out)
 
-test/%.out: $(RESULT) test/%.ml
-	@cat raytracer/globals.ml.head libminrt.ml.head test/$*.ml > test/$*.cat.ml
+test/%.out: $(RESULT) test/%.ml $(HEADERS)
+	@cat $(HEADERS) test/$*.ml > test/$*.cat.ml
 	./$(RESULT) -debug $(LEVEL) test/$*.cat
 
 .PHONY: del_debug
@@ -74,6 +76,11 @@ debuglist:
 .PHONY: arcturu
 arcturu:
 	sed -i.backup -e "s/\(Format\.eprintf.*free.*\)$$/(\* \1 \*)/g" typing.ml
+
+# raytracer用 by nekketsuuu
+raytracer: $(RESULT) raytracer/min-rt.ml $(HEADERS)
+	@cat $(HEADERS) raytracer/min-rt.ml > raytracer/min-rt.cat.ml
+	./$(RESULT) -debug $(LEVEL) raytracer/min-rt.cat
 
 # html
 min-caml.html: main.mli main.ml id.ml m.ml s.ml \

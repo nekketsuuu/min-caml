@@ -13,7 +13,7 @@ let rec deref_typ p = function (* 型変数を中身でおきかえる関数 (caml2html: typin
   | Type.Tuple(ts) -> Type.Tuple(List.map (deref_typ p) ts)
   | Type.Array(t) -> Type.Array(deref_typ p t)
   | Type.Var({ contents = None } as r) ->
-      Format.eprintf "uninstantiated type variable detected; assuming int@%d.\n" p.Lexing.pos_lnum;
+      Format.eprintf "uninstantiated type variable detected; assuming int at %d@." p.Lexing.pos_lnum;
       r := Some(Type.Int);
       Type.Int
   | Type.Var({ contents = Some(t) } as r) ->
@@ -123,7 +123,7 @@ let rec g env e = (* 型推論ルーチン (caml2html: typing_g) *)
     | Var(x, p) -> (* 外部変数の型推論 (caml2html: typing_extvar) *)
        let t = ref Type.Unit in
        (match x with
-	| "fneg" | "fabs" | "fhalf" | "fsqr" | "abs_float" | "sqrt" | "floor" | "cos" | "sin" | "atan"
+	| "fabs" | "abs_float" | "sqrt" | "floor" | "cos" | "sin" | "atan"
 	  -> t := Type.Fun([Type.Float], Type.Float)
 	| "int_of_float" | "truncate"
           -> t := Type.Fun([Type.Float], Type.Int)
@@ -140,7 +140,7 @@ let rec g env e = (* 型推論ルーチン (caml2html: typing_g) *)
 	| "read_float"
 	  -> t := Type.Fun([Type.Unit], Type.Float)
 	| _ ->
-	   (Format.eprintf "free variable %s assumed as external@%d.\n" x p.Lexing.pos_lnum;
+	   (Format.eprintf "free variable %s assumed as external at %d@." x p.Lexing.pos_lnum;
 	    t := Type.gentyp ()));
        extenv := M.add x !t !extenv;
        !t
@@ -179,6 +179,10 @@ let f e =
   | _ -> Format.eprintf "warning: final result does not have type unit@.");
 *)
   (try unify (Syntax.pos_of_exp e) Type.Unit (g M.empty e)
-  with Unify _ -> failwith "top level does not have type unit");
+   with Unify _ -> (Format.eprintf "top level does not have type unit@.";
+		    (* raytracerのtop levelの型がintなのでそれに対応する *)
+		    try extenv := M.empty;
+			unify (Syntax.pos_of_exp e) Type.Int (g M.empty e)
+		    with Unify _ -> failwith "top level does not have type either unit or int@."));
   extenv := M.map (deref_typ (Syntax.pos_of_exp e)) !extenv;
   deref_term e

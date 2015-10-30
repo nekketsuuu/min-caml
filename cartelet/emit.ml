@@ -20,7 +20,7 @@ let locate x =
     | y :: zs when x = y -> 0 :: List.map succ (loc zs)
     | y :: zs -> List.map succ (loc zs) in
   loc !stackmap
-let offset x = List.hd (locate x) + 1
+let offset x = (List.hd (locate x)) + 1
 let stacksize () = List.length !stackmap * 1
 
 let pp_id_or_imm = function
@@ -286,9 +286,6 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
       | "min_caml_sqrt" ->
 	 (Printf.fprintf oc "\tfsqrt\t%s %s" (List.hd ys) (List.hd zs);
 	  line oc p)
-      | "min_caml_fneg" ->
-	 (Printf.fprintf oc "\tfneg\t%s %s" (List.hd ys) (List.hd zs);
-	  line oc p)
       | _ ->
 	 (g'_args oc [] ys zs p;
 	  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero x;
@@ -321,9 +318,6 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
 	  line oc p)
       | "min_caml_sqrt" ->
 	 (Printf.fprintf oc "\tfsqrt\t%s %s" reg_rv (List.hd zs);
-	  line oc p)
-      | "min_caml_fneg" ->
-	 (Printf.fprintf oc "\tfneg\t%s %s" reg_rv (List.hd zs);
 	  line oc p)
       | _ ->
 	 (g'_args oc [] ys zs p;

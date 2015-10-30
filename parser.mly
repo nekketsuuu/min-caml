@@ -140,6 +140,8 @@ exp: /* (* ∞Ï»Ã§Œº∞ (caml2html: parser_exp) *) */
     { Put($1, $4, $7, $2) }
 | exp SEMICOLON exp
     { Let((Id.gentmp Type.Unit, Type.Unit), $1, $3, $2) }
+| exp SEMICOLON
+    { $1 }
 | ARRAY_CREATE simple_exp simple_exp
     %prec prec_app
     { Array($2, $3, $1) }

@@ -81,7 +81,7 @@ let lexbuf outchan l = (* バッファをコンパイルor途中まで変換してチャンネルへ出力
    );
   with
     Typing.Error(e, ty1, ty2, p) ->
-      (Format.eprintf "Error: This expression@%d has type %s but an expression was expected type %s\n\t"
+      (Format.eprintf "Error: This expression at %d has type %s but an expression was expected type %s\n\t@."
 		      p.Lexing.pos_lnum
 		      (Type.string_of_type ty2)
 		      (Type.string_of_type ty1);
