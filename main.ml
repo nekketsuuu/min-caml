@@ -90,16 +90,30 @@ let lexbuf outchan l = (* バッファをコンパイルor途中まで変換してチャンネルへ出力
 
 let string s = lexbuf stdout (Lexing.from_string s) (* 文字列をコンパイルして標準出力に表示する (caml2html: main_string) *)
 
+(* cat : in_channel -> out_channel -> unit *)
+let cat ic oc =
+  let rec cat_iter () =
+    output_string oc ((input_line ic) ^ "\n");
+    cat_iter ()
+  in
+    try cat_iter () with End_of_file -> ()
+
 let file f = (* ファイルをコンパイルしてファイルに出力する (caml2html: main_file) *)
   let inchan = open_in (f ^ ".ml") in
   let outchan = (match !debug_level with
 		 | Debug.Emit -> open_out (f ^ ".s")
 		 | _          -> open_out (f ^ ".out")) in
+  let libchan = open_in "libmincaml.S" in
   try
     lexbuf outchan (Lexing.from_channel inchan);
+    (if !debug_level = Debug.Emit then
+       (output_string outchan "\n# Library Start\n";
+	cat libchan outchan;
+        output_string outchan "# Library End\n"));
     close_in inchan;
     close_out outchan;
-  with e -> (close_in inchan; close_out outchan; raise e)
+    close_in libchan;
+  with e -> (close_in inchan; close_out outchan; close_in libchan; raise e)
 
 let () = (* ここからコンパイラの実行が開始される (caml2html: main_entry) *)
   let files = ref [] in

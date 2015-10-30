@@ -280,11 +280,22 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p
   | Tail, CallDir(Id.L(x), ys, zs, p) -> (* 末尾呼び出し *)
      (match x with
-      | "min_caml_abs_float" ->
+      | "min_caml_fabs" | "min_caml_abs_float" ->
 	 (Printf.fprintf oc "\tfabs\t%s %s" (List.hd ys) (List.hd zs);
 	  line oc p)
       | "min_caml_sqrt" ->
 	 (Printf.fprintf oc "\tfsqrt\t%s %s" (List.hd ys) (List.hd zs);
+	  line oc p)
+      | "min_caml_fneg" ->
+	 (Printf.fprintf oc "\tfneg\t%s %s" (List.hd ys) (List.hd zs);
+	  line oc p)
+      | "min_caml_fhalf" ->
+	 (Printf.fprintf oc "\taddi\t%s %s min_caml_float_half" reg_tmp reg_zero;
+	  line oc p;
+	  Printf.fprintf oc "\tfmul\t%s %s %s" (List.hd ys) reg_tmp (List.hd zs);
+	  line oc p)
+      | "min_caml_fsqr" ->
+	 (Printf.fprintf oc "\tfmul\t%s %s %s" (List.hd ys) (List.hd zs) (List.hd zs);
 	  line oc p)
       | _ ->
 	 (g'_args oc [] ys zs p;
@@ -318,7 +329,18 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
 	  line oc p)
       | "min_caml_sqrt" ->
 	 (Printf.fprintf oc "\tfsqrt\t%s %s" reg_rv (List.hd zs);
-	  line oc p);
+	  line oc p)
+      | "min_caml_fneg" ->
+	 (Printf.fprintf oc "\tfneg\t%s %s" reg_rv (List.hd zs);
+	  line oc p)
+      | "min_caml_fhalf" ->
+	 (Printf.fprintf oc "\taddi\t%s %s min_caml_float_half" reg_tmp reg_zero;
+	  line oc p;
+	  Printf.fprintf oc "\tfmul\t%s %s %s" reg_rv reg_tmp (List.hd zs);
+	  line oc p)
+      | "min_caml_fsqr" ->
+	 (Printf.fprintf oc "\tfmul\t%s %s %s" reg_rv (List.hd zs) (List.hd zs);
+	  line oc p)
       | _ ->
 	 (g'_args oc [] ys zs p;
 	  let ss = stacksize () in
