@@ -25,6 +25,12 @@ If you forget this list, type:
 $ make debuglist
 ```
 
+To compile raytracer, use
+
+```bash
+$ make raytracer
+```
+
 ----
 
 An educational compiler for a minimal subset of OCaml, written in
