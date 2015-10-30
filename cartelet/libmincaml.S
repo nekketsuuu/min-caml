@@ -63,18 +63,7 @@ min_caml_create_array_exit:
 	jr	%r31
 # ffloor
 min_caml_floor:
-	# 後回し
-	pushl	%ebp
-	movl	%esp, %ebp
-	ALIGNSTACK2
-	subl	$8, %esp
-	movsd	%xmm0, (%esp)
-	call	U(floor)
-	fstpl	(%esp)
-	movsd	(%esp), %xmm0
-	movl	%ebp, %esp
-	popl	%ebp
-	ret
+	jr	%r31
 # truncate
 min_caml_truncate:
 	# int_of_float(x+0.5)
@@ -106,6 +95,7 @@ min_caml_int_of_float_after_flag:
 	fst	-1(%r29) %f0
 	ld	-1(%r29) %r10
 	addi	%r16 %r10 $-1258291200
+	# FLAGの調整
 	beq	%r8 %r0 min_caml_int_of_float_small_positive
 	sub	%r16 %r0 %r16
 min_caml_int_of_float_small_positive:
@@ -131,6 +121,10 @@ min_caml_int_of_float_big_loop:
 	addi	%r29 %r29 $2
 	ld	-1(%r29) %r17
 	add	%r16 %r16 %r17
+	# FLAGの調整
+	beq	%r8 %r0 min_caml_int_of_float_big_positive
+	sub	%r16 %r0 %r16
+min_caml_int_of_float_big_positive:
 	jr	%r31
 # float_of_int
 min_caml_float_of_int:
