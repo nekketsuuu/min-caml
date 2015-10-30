@@ -60,7 +60,7 @@ LEVEL = Asm
 debug: del_debug $(TESTS:%=test/%.out)
 
 test/%.out: $(RESULT) test/%.ml
-	@cat libminrt.ml.head test/$*.ml > test/$*.cat.ml
+	@cat raytracer/globals.ml.head libminrt.ml.head test/$*.ml > test/$*.cat.ml
 	./$(RESULT) -debug $(LEVEL) test/$*.cat
 
 .PHONY: del_debug

@@ -78,6 +78,7 @@ rule token = parse
 | '_'
     { IDENT(Id.gentmp Type.Unit, lexbuf.Lexing.lex_curr_p) }
 | "Array.create" (* [XX] ad hoc *)
+| "create_array"
     { ARRAY_CREATE(lexbuf.Lexing.lex_curr_p) }
 | '.'
     { DOT(lexbuf.Lexing.lex_curr_p) }
