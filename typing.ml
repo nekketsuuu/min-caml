@@ -125,6 +125,10 @@ let rec g env e = (* 型推論ルーチン (caml2html: typing_g) *)
        (match x with
 	| "fneg" | "fabs" | "fhalf" | "fsqr" | "abs_float" | "sqrt" | "floor" | "cos" | "sin" | "atan"
 	  -> t := Type.Fun([Type.Float], Type.Float)
+	| "fless"
+	  -> t := Type.Fun([Type.Float; Type.Float], Type.Bool)
+	| "fispos" | "fisneg" | "fiszero"
+	  -> t := Type.Fun([Type.Float], Type.Bool)
 	| "int_of_float" | "truncate"
           -> t := Type.Fun([Type.Float], Type.Int)
 	| "float_of_int"
@@ -135,6 +139,10 @@ let rec g env e = (* 型推論ルーチン (caml2html: typing_g) *)
 	  -> t := Type.Fun([Type.Int], Type.Unit)
 	| "print_float"
 	  -> t := Type.Fun([Type.Float], Type.Unit)
+	| "read_int"
+	  -> t := Type.Fun([Type.Unit], Type.Int)
+	| "read_float"
+	  -> t := Type.Fun([Type.Unit], Type.Float)
 	| _ ->
 	   (Format.eprintf "free variable %s assumed as external@%d.\n" x p.Lexing.pos_lnum;
 	    t := Type.gentyp ()));
