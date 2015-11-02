@@ -13,11 +13,11 @@ min_caml_print_char:
 min_caml_print_int:
 	addi	%r8 %r0 $8
 	send8	%r16
-	slr	%r16 %r16 %r8
+	srl	%r16 %r16 %r8
 	send8	%r16
-	slr	%r16 %r16 %r8
+	srl	%r16 %r16 %r8
 	send8	%r16
-	slr	%r16 %r16 %r8
+	srl	%r16 %r16 %r8
 	send8	%r16
 	jr	%r31
 # print_float(32bit)
@@ -26,10 +26,10 @@ min_caml_print_float:
 	ld	-1(%r29) %r8
 	addi	%r9 %r0 $8
 	send8	%r8
-	slr	%r8 %r9 %r9
+	srl	%r8 %r9 %r9
 	send8	%r8
-	slr	%r8 %r9 %r9
+	srl	%r8 %r9 %r9
 	send8	%r8
-	slr	%r8 %r8 %r9
+	srl	%r8 %r8 %r9
 	send8	%r8
 	jr	%r31	
