@@ -98,17 +98,44 @@ let cat ic oc =
   in
     try cat_iter () with End_of_file -> ()
 
+(* mem : id.l list -> bool *)
+let rec mem = function
+  | [] -> false
+  | f :: lst -> if M.mem f !(Typing.extenv) then true
+		else mem lst
+
+(* catlib : string -> out_channel -> unit *)
+let catlib lib oc =
+  let libchan = open_in lib in
+  try
+    cat libchan oc;
+    close_in libchan
+  with e -> (close_in libchan; raise e)
+
 let file f = (* ファイルをコンパイルしてファイルに出力する (caml2html: main_file) *)
   let inchan = open_in (f ^ ".ml") in
   let outchan = (match !debug_level with
 		 | Debug.Emit -> open_out (f ^ ".s")
 		 | _          -> open_out (f ^ ".out")) in
-  let libchan = open_in "libmincaml.S" in
+  let libchan = open_in "libmincaml.S" in (* ad hoc library load for cartelet [should be deleted] *)
   try
     lexbuf outchan (Lexing.from_channel inchan);
-    (if !debug_level = Debug.Emit then
+    ((* 本当はリンカがすべき仕事 *)
+      if !debug_level = Debug.Emit then
        (output_string outchan "\n# Library Start\n";
 	cat libchan outchan;
+	if mem ["print_newline"; "print_byte"; "print_byte"; "print_char"; "print_int"; "print_float"] then
+	  catlib "lib/libmincaml_print.S" outchan;
+	if mem ["read_int"; "read_float"] then
+	  catlib "lib/libmincaml_read.S" outchan;
+	if mem ["create_array"; "create_float_array"] then
+	  catlib "lib/libmincaml_create_array.S" outchan;
+	if mem ["floor"] then
+	  catlib "lib/libmincaml_floor.S" outchan;
+	if mem ["cos"; "sin"] then
+	  catlib "lib/libmincaml_cos_sin.S" outchan;
+	if mem ["atan"] then
+	  catlib "lib/libmincaml_atan.S" outchan;
         output_string outchan "# Library End\n"));
     close_in inchan;
     close_out outchan;
