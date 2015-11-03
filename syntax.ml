@@ -31,7 +31,7 @@ and fundef = { name : Id.t * Type.t; args : (Id.t * Type.t) list; body : t }
 let pos_of_exp = function
     Unit p
   | Bool (_, p) | Int (_, p) | Float (_, p)
-  | Not (_, p) | Neg (_, p) | Add (_, _, p) | Sub (_, _, p)
+  | Not (_, p) | Neg (_, p) | Add (_, _, p) | Sub (_, _, p) | Mul (_, _, p) | Div (_, _, p)
   | FNeg (_, p) | FAdd (_, _, p) | FSub (_, _, p) | FMul (_, _, p) | FDiv (_, _, p)
   | Eq (_, _, p) | LE (_, _, p) | If (_, _, _, p)
   | Let (_, _, _, p) | Var (_, p) | LetRec (_, _, p)

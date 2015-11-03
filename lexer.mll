@@ -107,6 +107,6 @@ and comment = parse
     { comment lexbuf;
       comment lexbuf }
 | eof
-    { Format.eprintf "warning: unterminated comment at %d@." lexbuf.Lexing.lex_curr_p.pos_lnum }
+    { Format.eprintf "warning: unterminated comment at %d@." lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum }
 | _
     { comment lexbuf }
