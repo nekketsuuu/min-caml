@@ -3,6 +3,7 @@
 /asm.mli
 /debugAsm.ml
 /emit.ml
+/lib
 /libmincaml.S
 /regAlloc.ml
 /simm.ml
