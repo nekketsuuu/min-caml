@@ -122,7 +122,7 @@ let file f = (* ファイルをコンパイルしてファイルに出力する (caml2html: main_file
     lexbuf outchan (Lexing.from_channel inchan);
     ((* 本当はリンカがすべき仕事 *)
       if !debug_level = Debug.Emit then
-       (output_string outchan "\n# Library Start\n";
+       (output_string outchan "\n# Library Begin\n";
 	cat libchan outchan;
 	if mem ["print_newline"; "print_byte"; "print_byte"; "print_char"; "print_int"; "print_float"] then
 	  catlib "lib/libmincaml_print.S" outchan;
