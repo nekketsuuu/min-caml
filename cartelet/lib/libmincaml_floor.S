@@ -2,6 +2,7 @@
 min_caml_floor:
 	# float_of_int( int_of_float( x ) )をする
 	# |x| < 8388608ならもっと速くできるがとりあえず実装
+	# f0: x
 	fst	-1(%r29) %f0
 	addi	%r29 %r29 $-2
 	st	0(%r29) %r31
