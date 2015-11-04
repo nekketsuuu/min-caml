@@ -58,6 +58,7 @@ let reg_fsw = fregs.(Array.length fregs - 1) (* temporary for swap *)
 *)
 let reg_zero = "%r0" (* zero register *)
 let reg_rv = "%r2"  (* return value 1 *)
+let reg_frv = "%f0"
 let reg_tmp = regs_tmp.(0)
 let reg_hp = "%r28" (* heap pointer (caml2html: sparcasm_reghp) *) (* MIPSÅª¤Ë¤Ïgrobal pointer *)
 let reg_sp = "%r29" (* stack pointer *)

@@ -279,13 +279,16 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      Printf.fprintf oc "\tjr\t%s" reg_cl;
      line oc p
   | Tail, CallDir(Id.L(x), ys, zs, p) -> (* 末尾呼び出し *)
+     assert (x <> "min_caml_fabs" && x <> "min_caml_sqrt");
      (match x with
+(*
       | "min_caml_fabs" | "min_caml_abs_float" ->
-	 (Printf.fprintf oc "\tfabs\t%s %s" (List.hd ys) (List.hd zs);
+	 (Printf.fprintf oc "\tfabs\t%s %s" reg_frv (List.hd zs);
 	  line oc p)
       | "min_caml_sqrt" ->
-	 (Printf.fprintf oc "\tfsqrt\t%s %s" (List.hd ys) (List.hd zs);
+	 (Printf.fprintf oc "\tfsqrt\t%s %s" reg_frv (List.hd zs);
 	  line oc p)
+ *)
       | _ ->
 	 (g'_args oc [] ys zs p;
 	  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero x;
@@ -308,16 +311,16 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      if List.mem a allregs && a <> reg_rv then
        (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv a reg_zero;
 	line oc p)
-     else if List.mem a allfregs && a <> fregs.(0) then
-       (Printf.fprintf oc "\tfmov\t%s %s" a fregs.(0);
+     else if List.mem a allfregs && a <> reg_frv then
+       (Printf.fprintf oc "\tfmov\t%s %s" reg_frv a;
 	line oc p)
   | NonTail(a), CallDir(Id.L(x), ys, zs, p) ->
      (match x with
       | "min_caml_abs_float" ->
-	 (Printf.fprintf oc "\tfabs\t%s %s" reg_rv (List.hd zs);
+	 (Printf.fprintf oc "\tfabs\t%s %s" a (List.hd zs);
 	  line oc p)
       | "min_caml_sqrt" ->
-	 (Printf.fprintf oc "\tfsqrt\t%s %s" reg_rv (List.hd zs);
+	 (Printf.fprintf oc "\tfsqrt\t%s %s" a (List.hd zs);
 	  line oc p)
       | _ ->
 	 (g'_args oc [] ys zs p;
@@ -335,8 +338,8 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
 	  if List.mem a allregs && a <> reg_rv then
 	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv a reg_zero;
 	     line oc p)
-	  else if List.mem a allfregs && a <> fregs.(0) then
-	    (Printf.fprintf oc "\tmov.s\t%s %s" a fregs.(0);
+	  else if List.mem a allfregs && a <> reg_frv then
+	    (Printf.fprintf oc "\tfmov\t%s %s" reg_frv a;
 	     line oc p)))
 and g'_tail_if oc e1 e2 b reg1 reg2 p =
   let b_true = Id.genid b in
