@@ -46,20 +46,20 @@ let seq(e1, e2) = Let((Id.gentmp Type.Unit, Type.Unit), e1, e2)
 let regs_result    = Array.init 2 (fun i -> Printf.sprintf "%%r%d" (i+2))
 let regs_arg       = Array.init 4 (fun i -> Printf.sprintf "%%r%d" (i+4))
 let regs_saved_tmp = Array.init 8 (fun i -> Printf.sprintf "%%r%d" (i+16))
-let regs_tmp       = Array.init 10 (fun i -> if i<8 then Printf.sprintf "%%r%d" (i+8) else Printf.sprintf "%%r%d" (i+16))
+let regs_tmp       = Array.init 9 (fun i -> Printf.sprintf "%%r%d" (i+8)) (* r24はswapのため、r25はreg_tmpのために残す *)
 let regs = Array.append regs_result regs_tmp
 let fregs = Array.init 32 (fun i -> Printf.sprintf "%%f%d" i)
 let allregs = Array.to_list regs
 let allfregs = Array.to_list fregs
 let reg_cl = regs.(Array.length regs - 1) (* closure address (caml2html: sparcasm_regcl) *)
-(*
-let reg_sw = regs.(Array.length regs - 1) (* temporary for swap *)
+
+let reg_sw = "%r24" (* temporary for swap *)
 let reg_fsw = fregs.(Array.length fregs - 1) (* temporary for swap *)
-*)
+
 let reg_zero = "%r0" (* zero register *)
 let reg_rv = "%r2"  (* return value 1 *)
 let reg_frv = "%f0"
-let reg_tmp = regs_tmp.(0)
+let reg_tmp = "%r25"
 let reg_hp = "%r28" (* heap pointer (caml2html: sparcasm_reghp) *) (* MIPS的にはgrobal pointer *)
 let reg_sp = "%r29" (* stack pointer *)
 let reg_fp = "%r30" (* frame pointer *)

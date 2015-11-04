@@ -181,12 +181,12 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
       line oc p
   | Tail, (Set _ | SetL _ | Mov _ | Neg _ | Add _ | Sub _ | Mul _ | Div _ | Ld _ as exp) ->
      let p = Asm.pos_of_exp exp in
-     g' oc (NonTail(regs.(0)), exp);
+     g' oc (NonTail(reg_rv), exp);
      Printf.fprintf oc "\tjr\t%s" reg_ra;
      line oc p
   | Tail, (FMov _ | FNeg _ | FAdd _ | FSub _ | FMul _ | FDiv _ | LdF _  as exp) ->
       let p = Asm.pos_of_exp exp in
-      g' oc (NonTail(fregs.(0)), exp);
+      g' oc (NonTail(reg_frv), exp);
       Printf.fprintf oc "\tjr\t%s" reg_ra;
       line oc p
   | Tail, (Restore(x, p) as exp) ->
@@ -279,22 +279,19 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      Printf.fprintf oc "\tjr\t%s" reg_cl;
      line oc p
   | Tail, CallDir(Id.L(x), ys, zs, p) -> (* 末尾呼び出し *)
-     assert (x <> "min_caml_fabs" && x <> "min_caml_sqrt");
      (match x with
-(*
       | "min_caml_fabs" | "min_caml_abs_float" ->
 	 (Printf.fprintf oc "\tfabs\t%s %s" reg_frv (List.hd zs);
 	  line oc p)
       | "min_caml_sqrt" ->
 	 (Printf.fprintf oc "\tfsqrt\t%s %s" reg_frv (List.hd zs);
 	  line oc p)
- *)
       | _ ->
 	 (g'_args oc [] ys zs p;
 	  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero x;
-	  line oc p;
-	  Printf.fprintf oc "\tjr\t%s" reg_tmp;
-	  line oc p))
+	  line oc p));
+     Printf.fprintf oc "\tjr\t%s" reg_ra;
+     line oc p
   | NonTail(a), CallCls(x, ys, zs, p) ->
      g'_args oc [(x, reg_cl)] ys zs p;
      let ss = stacksize () in
@@ -309,7 +306,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      Printf.fprintf oc "\taddi\t%s %s $%d" reg_sp reg_sp (ss+1);
      line oc p;
      if List.mem a allregs && a <> reg_rv then
-       (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv a reg_zero;
+       (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv reg_zero a;
 	line oc p)
      else if List.mem a allfregs && a <> reg_frv then
        (Printf.fprintf oc "\tfmov\t%s %s" reg_frv a;
@@ -318,10 +315,16 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      (match x with
       | "min_caml_abs_float" ->
 	 (Printf.fprintf oc "\tfabs\t%s %s" a (List.hd zs);
-	  line oc p)
+	  line oc p;
+	  if a <> reg_rv then (* 後でもう少し確認する *)
+	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv reg_zero a;
+	     line oc p))
       | "min_caml_sqrt" ->
 	 (Printf.fprintf oc "\tfsqrt\t%s %s" a (List.hd zs);
-	  line oc p)
+	  line oc p;
+	  if a <> reg_rv then
+	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv reg_zero a;
+	     line oc p))
       | _ ->
 	 (g'_args oc [] ys zs p;
 	  let ss = stacksize () in
@@ -336,7 +339,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
 	  Printf.fprintf oc "\taddi\t%s %s $%d" reg_sp reg_sp (ss+1);
 	  line oc p;
 	  if List.mem a allregs && a <> reg_rv then
-	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv a reg_zero;
+	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv reg_zero a;
 	     line oc p)
 	  else if List.mem a allfregs && a <> reg_frv then
 	    (Printf.fprintf oc "\tfmov\t%s %s" reg_frv a;
@@ -398,15 +401,15 @@ and g'_non_tail_if_float oc dest e1 e2 b p =
 and g'_args oc x_reg_cl ys zs p =
   assert (List.length ys <= Array.length regs - List.length x_reg_cl);
   assert (List.length zs <= Array.length fregs);
-  let sw = Printf.sprintf "%d(%s)" (stacksize ()) reg_sp in
+  (* let sw = Printf.sprintf "%d(%s)" (stacksize ()) reg_sp in *)
   let (i, yrs) =
     List.fold_left
       (fun (i, yrs) y -> (i + 1, (y, regs.(i)) :: yrs))
       (0, x_reg_cl)
       ys in
   List.iter
-    (fun (y, r) -> (Printf.fprintf oc "\tadd\t%s %s %s" r y reg_zero; line oc p))
-    (shuffle sw yrs);
+    (fun (y, r) -> (Printf.fprintf oc "\tadd\t%s %s %s" r reg_zero y; line oc p))
+    (shuffle reg_sw yrs);
   let (d, zfrs) =
     List.fold_left
       (fun (d, zfrs) z -> (d + 1, (z, fregs.(d)) :: zfrs))
@@ -414,7 +417,7 @@ and g'_args oc x_reg_cl ys zs p =
       zs in
   List.iter
     (fun (z, fr) -> (Printf.fprintf oc "\tfmov\t%s %s" fr z; line oc p))
-    (shuffle sw zfrs)
+    (shuffle reg_fsw zfrs)
 
 let h oc { name = Id.L(x); args = _; fargs = _; body = e; ret = _ } =
   Printf.fprintf oc "%s:\n" x;
