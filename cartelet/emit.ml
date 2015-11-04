@@ -483,6 +483,8 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\taddi\t%s %s $10\n" reg_tmp reg_zero;
   Printf.fprintf oc "\tsll\t%s %s %s\n" reg_sp reg_sp reg_tmp;
   Printf.fprintf oc "\taddi\t%s %s $1023\n" reg_sp reg_zero;
+  (* ヒープポインタ(グローバルポインタ)を中腹(2^10)にする *)
+  Printf.fprintf oc "\taddi\t%s %s $1023\n" reg_gp reg_zero;
   stackset := S.empty;
   stackmap := [];
   Printf.fprintf oc "\t# Main Program Begin\n";
