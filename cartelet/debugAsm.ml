@@ -111,7 +111,7 @@ and exp_iter e =
 	 id_emit id1;
 	 Format.print_space ();
 	 id_or_imm_emit idimm;
-	 Format.print_space;
+	 Format.print_space ();
 	 Format.print_int i;
 	 Format.close_box ())
      | Asm.FMov (id, p) -> monop_emit "FMovD" id
@@ -139,7 +139,7 @@ and exp_iter e =
 	 id_emit id1;
 	 Format.print_space ();
 	 id_or_imm_emit idimm;
-	 Format.print_space;
+	 Format.print_space ();
 	 Format.print_int i;
 	 Format.close_box ())
      | Asm.Comment (str, p) ->
