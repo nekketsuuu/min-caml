@@ -19,8 +19,10 @@
 ._bcdi/
 ._d/
 
-# Binary
+# Binary and Hex
 *.o
+*.hex
+*.bin
 
 # Project-specific generated files
 /lexer.ml
