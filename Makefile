@@ -78,9 +78,13 @@ arcturu:
 # raytracerÍÑ by nekketsuuu
 HEADERS = raytracer/globals.ml.head libminrt.ml.head
 
-raytracer: $(RESULT) raytracer/min-rt.ml $(HEADERS) 
+raytracer: $(RESULT) raytracer/min-rt.ml $(HEADERS) del_raytracer
 	@cat $(HEADERS) raytracer/min-rt.ml > raytracer/min-rt.cat.ml
 	./$(RESULT) -debug $(LEVEL) raytracer/min-rt.cat
+
+.PHONY: del_raytracer
+del_raytracer:
+	rm -f raytracer/min-rt.cat.ml
 
 # html
 min-caml.html: main.mli main.ml id.ml m.ml s.ml \

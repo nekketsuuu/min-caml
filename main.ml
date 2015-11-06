@@ -124,12 +124,13 @@ let file f = (* ファイルをコンパイルしてファイルに出力する (caml2html: main_file
       if !debug_level = Debug.Emit then
        (output_string outchan "\n# Library Begin\n";
 	cat libchan outchan;
+	catlib "lib/libmincaml_create_array.S" outchan;
 	if mem ["print_newline"; "print_byte"; "print_byte"; "print_char"; "print_int"; "print_float"] then
 	  catlib "lib/libmincaml_print.S" outchan;
 	if mem ["read_int"; "read_float"] then
 	  catlib "lib/libmincaml_read.S" outchan;
-	if mem ["create_array"; "create_float_array"] then
-	  catlib "lib/libmincaml_create_array.S" outchan;
+	if mem ["truncate"; "int_of_float"; "float_of_int"] then
+	  catlib "lib/libmincaml_int_float.S" outchan;
 	if mem ["floor"] then
 	  catlib "lib/libmincaml_floor.S" outchan;
 	if mem ["cos"; "sin"] then

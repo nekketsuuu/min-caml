@@ -13,7 +13,7 @@ min_caml_int_of_float:
 	bclt	min_caml_int_of_float_flag_negative
 	addi	%r8 %r0 $0
 	addi	%r9 %r0 min_caml_int_of_float_after_flag
-	br	%r9
+	jr	%r9
 min_caml_int_of_float_flag_negative:
 	addi	%r8 %r0 $1
 	fneg	%f0 %f0
@@ -23,12 +23,15 @@ min_caml_int_of_float_after_flag:
 	fslt	%f0 %f1
 	bclf	min_caml_int_of_float_big
 	# |x| < 8388608.0
-	# r8: FLAG, r9: addr
+	# r8: FLAG, r9: addr, r10: imm, r11: const for shift
 	# f0: |x|, f1: 8388608.0
 	fadd	%f0 %f0 %f1
 	fst	-1(%r29) %f0
-	ld	-1(%r29) %r10
-	addi	%r2 %r10 $-1258291200
+	ld	-1(%r29) %r2
+	addi	%r11 %r0 $16
+	addiu	%r10 %r0 $65344
+	sll	%r10 %r10 %r11
+	add	%r2 %r2 %r10 # add -1258291200
 	# FLAGの調整
 	beq	%r8 %r0 min_caml_int_of_float_small_positive
 	sub	%r2 %r0 %r2
@@ -36,14 +39,15 @@ min_caml_int_of_float_small_positive:
 	jr	%r31
 min_caml_int_of_float_big:
 	# |x| >= 8388608.0
-	# r2: answer, r8: FLAG, r9: addr
+	# r2: answer, r8: FLAG, r9: addr, r10: imm, r11: const for shift
 	# f0: |x|, f1: 8388608.0, f2: -8388608.0
 	fneg	%f2 %f1
-	addi	%r2 %r0 %r0
+	add	%r2 %r0 %r0
 	# m回8388608を足す
 min_caml_int_of_float_big_loop:
-	fadd	%f0 %f2
-	addi	%r2 %r2 $8388608
+	fadd	%f0 %f0 %f2
+	addiu32 %r11 %r0 $8388608
+	add	%r2 %r2 %r11
 	fslt	%f0 %f1
 	bclf	min_caml_int_of_float_big_loop
 	# int_of_float(n)を足す
@@ -68,12 +72,12 @@ min_caml_float_of_int:
 	addi	%r9 %r0 $1
 	sub	%r11 %r0 %r2
 	addi	%r10 %r0 min_caml_float_of_int_after_flag
-	br	%r10
+	jr	%r10
 min_caml_float_of_int_flag_positive:
 	addi	%r9 %r0 $0
 	add	%r11 %r0 %r2
 min_caml_float_of_int_after_flag:
-	addi	%r8 %r0 $8388608
+	addiu32	%r8 %r0 $8388608
 	slt	%r10 %r11 %r8
 	beq	%r10 %r0 min_caml_float_of_int_big
 	# |x| < 838860
@@ -85,7 +89,7 @@ min_caml_float_of_int_after_flag:
 	fld	-1(%r29) %f0
 	addi	%r8 %r0 min_caml_float_int_c1
 	fld	0(%r8) %f1
-	addi	%f0 %f0 %f1
+	fadd	%f0 %f0 %f1
 	# FLAG
 	beq	%r9 %r0 min_caml_float_of_int_small_positive
 	fneg	%f0 %f0
@@ -102,8 +106,8 @@ min_caml_float_of_int_big:
 	fld	0(%r8) %f1
 	add	%r8 %r0 %r11
 	add	%r9 %r0 %r0
-	addi	%r10 %r0 $8388608
-	addi	%r11 %r0 $-8388608
+	addiu32	%r10 %r0 $8388608
+	addiu32	%r11 %r0 $4286578688 # -8388608
 min_caml_float_of_int_big_loop:
 	# float_of_int(8388608)*mを求める
 	fadd	%f0 %f0 %f1

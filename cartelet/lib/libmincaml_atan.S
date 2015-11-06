@@ -2,19 +2,19 @@
 min_caml_atan:
 	# r8: FLAG, r9: addr
 	# f0: x, f1: pi, f2: 0.5, f3: temp(pi/4, pi/2), f4: temp, f5: temp
-	addi	%r9 min_caml_float_0
+	addi	%r9 %r0 min_caml_float_0
 	fld	0(%r9) %f1
 	fslt	%f0 %f1
 	bclt	min_caml_atan_flag_negative
 	addi	%r8 %r0 $0
-	addi	%r9 min_caml_atan_after_flag
+	addi	%r9 %r0 min_caml_atan_after_flag
 	jr	%r9
 min_caml_atan_flag_negative:
 	addi	%r8 %r0 $1
 min_caml_atan_after_flag:
 	fabs	%f0 %f0
 	addi	%r9 %r0 min_caml_atan_c1
-	fld	0(%9) %f4
+	fld	0(%r9) %f4
 	fslt	%f0 %f4
 	bclf	min_caml_atan_2
 	# |x| < 0.4375

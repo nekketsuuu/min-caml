@@ -6,7 +6,7 @@ OCAMLOPT=$(OCAMLBASE)/ocamlopt
 all: native
 
 clean:
-	rm -f *.cm? *.o
+	rm -f *.cm? *.o *.hex min-rt.*.bin min-rt.cat.ml
 
 native: min-rt
 bytecode: min-rt_b

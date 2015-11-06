@@ -86,10 +86,37 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p;
   | NonTail(x), Div(y, z', p) ->
      assert(z' = C(2));
+(*
      Printf.fprintf oc "\taddi\t%s %s $1" reg_tmp reg_zero;
      line oc p;
      Printf.fprintf oc "\tsra\t%s %s %s" x y reg_tmp;
      line oc p;
+ *)
+     (* sraが無くなったので正負に分けて符号を後で足す *)
+     let pos_div = Id.genid "div_positive" in
+     let div_exit = Id.genid "div_exit" in
+     Printf.fprintf oc "\tslt\t%s %s %s" reg_tmp reg_tmp reg_zero;
+     line oc p;
+     Printf.fprintf oc "\tbeq\t%s %s %s" reg_tmp reg_zero pos_div;
+     line oc p;
+     (* negative *)
+     Printf.fprintf oc "\taddi\t%s %s $1" reg_tmp reg_zero;
+     line oc p;
+     Printf.fprintf oc "\tsrl\t%s %s %s" x y reg_tmp;
+     line oc p;
+     Printf.fprintf oc "\taddiu32\t%s %s $%d" x x 2147483648; (* 0x80000000 *)
+     line oc p;
+     Printf.fprintf oc "\taddiu\t%s %s %s" reg_tmp reg_zero div_exit;
+     line oc p;
+     Printf.fprintf oc "\tjr\t%s" reg_tmp;
+     line oc p;
+     (* positive *)
+     Printf.fprintf oc "%s:\n" pos_div;
+     Printf.fprintf oc "\taddi\t%s %s $1" reg_tmp reg_zero;
+     line oc p;
+     Printf.fprintf oc "\tsrl\t%s %s %s" x y reg_tmp;
+     line oc p;
+     Printf.fprintf oc "%s:\n" div_exit;
   | NonTail(x), Ld(y, V(z), i, p) ->
      assert(i = 4);
      Printf.fprintf oc "\tadd\t%s %s %s" reg_tmp y z;
@@ -108,7 +135,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p
   | NonTail(_), St(x, y, C(j), i, p) ->
      assert(i = 4);
-     Printf.fprintf oc "\tst\t%d(%s) %s" j reg_zero x;
+     Printf.fprintf oc "\tst\t%d(%s) %s" j y x;
      line oc p
   | NonTail(x), FMov(y, p) ->
      if x <> y then (Printf.fprintf oc "\tfmov\t%s %s" y x;
@@ -313,7 +340,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
 	line oc p)
   | NonTail(a), CallDir(Id.L(x), ys, zs, p) ->
      (match x with
-      | "min_caml_abs_float" ->
+      | "min_caml_fabs" | "min_caml_abs_float" ->
 	 (Printf.fprintf oc "\tfabs\t%s %s" a (List.hd zs);
 	  line oc p;
 	  if a <> reg_rv then (* 後でもう少し確認する *)
@@ -428,7 +455,7 @@ let h oc { name = Id.L(x); args = _; fargs = _; body = e; ret = _ } =
 let f oc (Prog(data, fundefs, e)) =
   Format.eprintf "generating assembly...@.";
   Printf.fprintf oc ".data\n";
-  (* constant for cos, sin, and atan *)
+  (* constant for library *)
   Printf.fprintf oc "min_caml_pi:\n";
   Printf.fprintf oc "\t.long\t0x40490fdb\n";
   Printf.fprintf oc "min_caml_float_0:\n";
