@@ -125,13 +125,12 @@ let file f = (* ファイルをコンパイルしてファイルに出力する (caml2html: main_file
        (output_string outchan "\n# Library Begin\n";
 	cat libchan outchan;
 	catlib "lib/libmincaml_create_array.S" outchan;
-	if mem ["print_newline"; "print_byte"; "print_byte"; "print_char"; "print_int"; "print_float"; "print_int_byte"; "read_int"; "read_float"] then
-	  catlib "lib/libmincaml_div10.S" outchan;
 	if mem ["print_newline"; "print_byte"; "print_byte"; "print_char"; "print_int"; "print_float"; "print_int_byte"; "print_float_byte"] then
-	  catlib "lib/libmincaml_print.S" outchan;
+	  (catlib "lib/libmincaml_div10.S" outchan;
+	   catlib "lib/libmincaml_print.S" outchan);
 	if mem ["read_int"; "read_float"] then
 	  catlib "lib/libmincaml_read.S" outchan;
-	if mem ["truncate"; "int_of_float"; "float_of_int"] then
+	if mem ["truncate"; "int_of_float"; "float_of_int"; "floor"] then
 	  catlib "lib/libmincaml_int_float.S" outchan;
 	if mem ["floor"] then
 	  catlib "lib/libmincaml_floor.S" outchan;

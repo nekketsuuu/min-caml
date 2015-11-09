@@ -81,9 +81,10 @@ min_caml_float_of_int_after_flag:
 	slt	%r10 %r11 %r8
 	beq	%r10 %r0 min_caml_float_of_int_big
 	# |x| < 838860
-	# 8388608を足して8388608.0fを引く
+	# 8388608.0f + xにして、8388608.0fを引く
 	# r2: x, r8: const or addr, r9: FLAG, r10: temp, r11: |x|
 	# f0: answer
+	addiu32	%r8 %r0 $0x4b000000
 	add	%r10 %r11 %r8
 	st	-1(%r29) %r10
 	fld	-1(%r29) %f0

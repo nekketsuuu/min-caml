@@ -452,6 +452,13 @@ let h oc { name = Id.L(x); args = _; fargs = _; body = e; ret = _ } =
   stackmap := [];
   g oc (Tail, e)
 
+(* mem : string list -> bool *)
+let rec mem = function
+  | [] -> false
+  | str::lst ->
+     (if M.mem str !(Typing.extenv) then true
+      else mem lst)
+
 let f oc (Prog(data, fundefs, e)) =
   Format.eprintf "generating assembly...@.";
   Printf.fprintf oc ".data\n";
@@ -466,12 +473,15 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.long\t0xbf800000\n";
   Printf.fprintf oc "min_caml_float_half:\n";
   Printf.fprintf oc "\t.long\t0x3f000000\n";
-  (if (M.mem "int_of_float" !(Typing.extenv)) || (M.mem "truncate" !(Typing.extenv)) || (M.mem "float_of_int" !(Typing.extenv)) then
+  (if mem ["read_int"; "read_float"; "read_int_byte"; "read_float_byte"] then
+     (Printf.fprintf oc "min_caml_read_float_c1:\n";
+      Printf.fprintf oc "\t.long\t0x3dcccccd\n"));
+  (if mem ["int_of_float"; "truncate"; "float_of_int"] then
      (Printf.fprintf oc "min_caml_float_int_c1:\n";
       Printf.fprintf oc "\t.long\t0xcb000000\n"; (* (float)(-838860) *)
       Printf.fprintf oc "min_caml_float_int_c2:\n";
       Printf.fprintf oc "\t.long\t0x4b000000\n" (* (float)(838860) *)));
-  (if (M.mem "cos" !(Typing.extenv)) || (M.mem "sin" !(Typing.extenv)) then
+  (if mem ["cos"; "sin"] then
      (Printf.fprintf oc "min_caml_kernel_cos_c1:\n";
       Printf.fprintf oc "\t.long\t0xbf000000\n";
       Printf.fprintf oc "min_caml_kernel_cos_c2:\n";
@@ -484,7 +494,7 @@ let f oc (Prog(data, fundefs, e)) =
       Printf.fprintf oc "\t.long\t0x3c088666\n";
       Printf.fprintf oc "min_caml_kernel_sin_c3:\n";
       Printf.fprintf oc "\t.long\t0xb94d64b6\n"));
-  (if M.mem "atan" !(Typing.extenv) then
+  (if mem ["atan"] then
      (Printf.fprintf oc "min_caml_atan_c1:\n";
       Printf.fprintf oc "\t.long\t0x3ee00000\n";
       Printf.fprintf oc "min_caml_atan_c2:\n";
@@ -515,7 +525,7 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\taddi\t%s %s $1023\n" reg_sp reg_zero;
   Printf.fprintf oc "\taddi\t%s %s $10\n" reg_tmp reg_zero;
   Printf.fprintf oc "\tsll\t%s %s %s\n" reg_sp reg_sp reg_tmp;
-  Printf.fprintf oc "\taddi\t%s %s $1023\n" reg_sp reg_zero;
+  Printf.fprintf oc "\taddi\t%s %s $1023\n" reg_sp reg_sp;
   (* ヒープポインタ(グローバルポインタ)を中腹(2^10)にする *)
   Printf.fprintf oc "\taddi\t%s %s $1023\n" reg_hp reg_zero;
   stackset := S.empty;
