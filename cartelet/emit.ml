@@ -465,6 +465,10 @@ let f oc (Prog(data, fundefs, e)) =
   (* constant for library *)
   Printf.fprintf oc "min_caml_pi:\n";
   Printf.fprintf oc "\t.long\t0x40490fdb\n";
+  Printf.fprintf oc "min_caml_half_pi:\n";
+  Printf.fprintf oc "\t.long\t0x3fc90fdb\n";
+  Printf.fprintf oc "min_caml_quarter_pi:\n";
+  Printf.fprintf oc "\t.long\t0x3f490fdb\n";
   Printf.fprintf oc "min_caml_float_0:\n";
   Printf.fprintf oc "\t.long\t0x00000000\n";
   Printf.fprintf oc "min_caml_float_1:\n";

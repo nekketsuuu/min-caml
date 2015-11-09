@@ -17,9 +17,12 @@ min_caml_cos:
 	bclt	min_caml_cos_2
 	fneg	%f3 %f1
 	fadd	%f0 %f0 %f3
-	addi	%r8 %r8 $1
-	addi	%r9 %r0 $1
-	sll	%r8 %r8 %r9
+	beq	%r8 %r0 min_caml_cos_1_0
+	addi	%r8 %r0 $0
+	addi	%r9 %r0 min_caml_cos_2
+	jr	%r9
+min_caml_cos_1_0:
+	addi	%r8 %r0 $1
 min_caml_cos_2:
 	# x >= pi/2ならx := pi - x, FLAG reverse
 	addi	%r9 %r0 min_caml_float_half
@@ -29,9 +32,12 @@ min_caml_cos_2:
 	bclt	min_caml_cos_3
 	fneg	%f4 %f0
 	fadd	%f0 %f1 %f4
-	addi	%r8 %r8 $1
-	addi	%r9 %r0 $1
-	sll	%r8 %r8 %r9
+	beq	%r8 %r0 min_caml_cos_2_0
+	addi	%r8 %r0 $0
+	addi	%r9 %r0 min_caml_cos_3
+	jr	%r9
+min_caml_cos_2_0:
+	addi	%r8 %r0 $1
 min_caml_cos_3:
 	# x <= pi/4ならkernel_cos, そうでないならx := pi/2 - x, kernel_sinする
 	fmul	%f4 %f3 %f2
@@ -51,12 +57,12 @@ min_caml_kernel_cos:
 	fmul	%f0 %f3 %f1
 	addi	%r9 %r0 min_caml_kernel_cos_c2
 	fld	0(%r9) %f3
-	fadd	%f0 %f0 %f3
-	fmul	%f0 %f0 %f2
+	fadd	%f0 %f0 %f1
+	fmul	%f0 %f0 %f3
 	addi	%r9 %r0 min_caml_kernel_cos_c1
 	fld	0(%r9) %f3
-	fadd	%f0 %f0 %f2
-	fmul	%f0 %f0 %f1
+	fadd	%f0 %f0 %f1
+	fmul	%f0 %f0 %f3
 	addi	%r9 %r0 min_caml_float_1
 	fld	0(%r9) %f3
 	fadd	%f0 %f0 %f3
@@ -97,9 +103,12 @@ min_caml_sin_after_flag:
 	bclt	min_caml_sin_2
 	fneg	%f3 %f1
 	fadd	%f0 %f0 %f3
-	addi	%r8 %r8 $1
-	addi	%r9 %r0 $1
-	sll	%r8 %r8 %r9
+	beq	%r8 %r0 min_caml_sin_1_0
+	addi	%r8 %r0 $0
+	addi	%r9 %r0 min_caml_sin_2
+	jr	%r9
+min_caml_sin_1_0:
+	addi	%r8 %r0 $1
 min_caml_sin_2:
 	# x >= pi/2ならx := pi - x
 	addi	%r9 %r0 min_caml_float_half
@@ -134,7 +143,8 @@ min_caml_kernel_sin:
 	fld	0(%r9) %f3
 	fadd	%f1 %f1 %f3
 	fmul	%f1 %f1 %f2
-	fmul	%f0 %f1 %f0
+	fmul	%f1 %f1 %f0
+	fadd	%f0 %f1 %f0
 	beq	%r8 %r0 min_caml_kernel_sin_positive
 	fabs	%f0 %f0
 	fneg	%f0 %f0
@@ -148,18 +158,27 @@ min_caml_reduction_2pi:
 	# f1: 2*pi, f2: 0.5, f3: p
 	addi	%r9 %r0 min_caml_pi
 	fld	0(%r9) %f1
+	fadd	%f1 %f1 %f1
+	fmov	%f3 %f1
 	addi	%r9 %r0 min_caml_float_half
-	fld	0(%r9) %f1
-	fadd	%f0 %f1 %f1
-	fmov	%f3 %f0
-min_caml_reduction_2pi_cont:
-	fslt	%f0 %f1
-	bclt	min_caml_reduction_2pi_exit
+	fld	0(%r9) %f2
+	addi	%r9 %r0 min_caml_reduction_2pi_while1
+min_caml_reduction_2pi_while1:
 	fslt	%f0 %f3
-	bclt	min_caml_reduction_2pi_after_if
+	bclt	min_caml_reduction_2pi_while1_exit
+	fadd	%f3 %f3 %f3
+	jr	%r9
+min_caml_reduction_2pi_while1_exit:
+	addi	%r9 %r0 min_caml_reduction_2pi_while2
+min_caml_reduction_2pi_while2:
+	fslt	%f0 %f1
+	bclt	min_caml_reduction_2pi_while2_exit
+	fslt	%f0 %f3
+	bclt	min_caml_reduction_2pi_while2_after_if
 	fneg	%f4 %f3
 	fadd	%f0 %f0 %f4
-min_caml_reduction_2pi_after_if:
+min_caml_reduction_2pi_while2_after_if:
 	fmul	%f3 %f3 %f2
-min_caml_reduction_2pi_exit:
+	jr	%r9
+min_caml_reduction_2pi_while2_exit:
 	jr	%r31
