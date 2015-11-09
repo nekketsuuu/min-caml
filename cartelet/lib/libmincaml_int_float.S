@@ -1,3 +1,9 @@
+##
+## libmincaml_int_float.S
+## むっちゃ大きい数に対してはまだむちゃくちゃ遅い！
+## 加算を倍々に足すやつにすべき(あとでする)
+##
+
 # truncate
 min_caml_truncate:
 	# int_of_float(x+0.5)
@@ -18,7 +24,7 @@ min_caml_int_of_float_flag_negative:
 	addi	%r8 %r0 $1
 	fneg	%f0 %f0
 min_caml_int_of_float_after_flag:
-	addi	%r9 %r0 min_caml_float_int_c1
+	addi	%r9 %r0 min_caml_float_int_c2
 	fld	0(%r9) %f1
 	fslt	%f0 %f1
 	bclf	min_caml_int_of_float_big
@@ -28,10 +34,9 @@ min_caml_int_of_float_after_flag:
 	fadd	%f0 %f0 %f1
 	fst	-1(%r29) %f0
 	ld	-1(%r29) %r2
-	addi	%r11 %r0 $16
-	addiu	%r10 %r0 $65344
-	sll	%r10 %r10 %r11
-	add	%r2 %r2 %r10 # add -1258291200
+	addiu32	%r10 %r0 $0x4b000000
+	sub	%r10 %r0 %r10
+	add	%r2 %r2 %r10 
 	# FLAGの調整
 	beq	%r8 %r0 min_caml_int_of_float_small_positive
 	sub	%r2 %r0 %r2
@@ -42,7 +47,7 @@ min_caml_int_of_float_big:
 	# r2: answer, r8: FLAG, r9: addr, r10: imm, r11: const for shift
 	# f0: |x|, f1: 8388608.0, f2: -8388608.0
 	fneg	%f2 %f1
-	add	%r2 %r0 %r0
+	addi	%r2 %r0 $0
 	# m回8388608を足す
 min_caml_int_of_float_big_loop:
 	fadd	%f0 %f0 %f2
@@ -108,12 +113,12 @@ min_caml_float_of_int_big:
 	add	%r8 %r0 %r11
 	add	%r9 %r0 %r0
 	addiu32	%r10 %r0 $8388608
-	addiu32	%r11 %r0 $4286578688 # -8388608
+	sub	%r11 %r0 %r10
 min_caml_float_of_int_big_loop:
 	# float_of_int(8388608)*mを求める
 	fadd	%f0 %f0 %f1
 	add	%r8 %r8 %r11
-	slt	%r12 %r10 %r8
+	slt	%r12 %r8 %r10
 	beq	%r12 %r0 min_caml_float_of_int_big_loop
 	# float_of_int(n)を求める
 	st	-1(%r29) %r2
