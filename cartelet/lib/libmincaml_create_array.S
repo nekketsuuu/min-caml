@@ -6,10 +6,10 @@ min_caml_create_array:
 	add	%r2 %r0 %r28
 	addi	%r10 %r0 min_caml_create_array_loop
 min_caml_create_array_loop:
+	beq	%r8 %r0 min_caml_create_array_exit
 	st	0(%r28) %r3
 	addi	%r8 %r8 $-1
 	addi	%r28 %r28 $1
-	beq	%r8 %r0 min_caml_create_array_exit
 	jr	%r10
 min_caml_create_array_exit:
 	jr	%r31
@@ -20,12 +20,12 @@ min_caml_create_float_array:
 	# f0: initial value
 	add	%r8 %r0 %r2
 	add	%r2 %r0 %r28
-	addi	%r10 %r0 min_caml_create_array_loop
-min_caml_create_array_loop:
+	addi	%r10 %r0 min_caml_create_float_array_loop
+min_caml_create_float_array_loop:
+	beq	%r8 %r0 min_caml_create_float_array_exit
 	fst	0(%r28) %f0
 	addi	%r8 %r8 $-1
 	addi	%r28 %r28 $1
-	beq	%r8 %r0 min_caml_create_array_exit
 	jr	%r10
-min_caml_create_array_exit:
+min_caml_create_float_array_exit:
 	jr	%r31

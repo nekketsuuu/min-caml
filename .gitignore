@@ -43,6 +43,12 @@
 /min-rt/*.ppm
 /min-rt/*.sld_
 
+/shootout/*.bin
+/shootout/*.hex
+/shootout/*.s
+/shootout/*.o
+/shootout/*.out
+
 /raytracer/min-rt
 /raytracer/min-rt_b
 /raytracer/min-rt.cat.ml

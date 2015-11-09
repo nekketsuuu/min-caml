@@ -34,7 +34,7 @@ adder funcomp cls-rec cls-bug cls-bug2 \
 shuffle spill spill2 spill3 join-stack join-stack2 join-stack3 \
 join-reg join-reg2 non-tail-if non-tail-if2 \
 inprod inprod-rec inprod-loop matmul matmul-flat \
-muldiv float
+muldiv float array
 
 do_test: $(TESTS:%=test/%.cmp)
 
@@ -54,6 +54,7 @@ test/%.cmp: test/%.res test/%.ans
 
 # デバッグ用 by nekketsuuu
 # usage: make debug LEVEL=Parser
+INLINE = 20
 LEVEL = Asm
 
 .PHONY: debug
@@ -61,7 +62,7 @@ debug: del_debug $(TESTS:%=test/%.out)
 
 test/%.out: $(RESULT) test/%.ml libminrt.ml.head
 	@cat libminrt.ml.head test/$*.ml > test/$*.cat.ml
-	./$(RESULT) -debug $(LEVEL) test/$*.cat
+	./$(RESULT) -inline $(INLINE) -debug $(LEVEL) test/$*.cat
 
 .PHONY: del_debug
 del_debug:
@@ -80,7 +81,7 @@ HEADERS = raytracer/globals.ml.head libminrt.ml.head
 
 raytracer: $(RESULT) raytracer/min-rt.ml $(HEADERS) del_raytracer
 	@cat $(HEADERS) raytracer/min-rt.ml > raytracer/min-rt.cat.ml
-	./$(RESULT) -debug $(LEVEL) raytracer/min-rt.cat
+	./$(RESULT) -inline $(INLINE) -debug $(LEVEL) raytracer/min-rt.cat
 
 .PHONY: del_raytracer
 del_raytracer:
