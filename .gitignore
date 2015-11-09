@@ -57,8 +57,9 @@
 !/error_test/*.ml
 /error_test/*.cat.ml
 
-# my OCaml top-level for debugging
+# some files for debugging
 /cartelet/ocamld
+/cartelet/lib/test*
 
 # Backup files
 *~
