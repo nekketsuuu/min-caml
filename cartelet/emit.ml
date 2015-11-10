@@ -311,16 +311,20 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      (match x with
       | "min_caml_fabs" | "min_caml_abs_float" ->
 	 (Printf.fprintf oc "\tfabs\t%s %s" reg_frv (List.hd zs);
+	  line oc p;
+	  Printf.fprintf oc "\tjr\t%s" reg_ra;
 	  line oc p)
       | "min_caml_sqrt" ->
 	 (Printf.fprintf oc "\tfsqrt\t%s %s" reg_frv (List.hd zs);
+	  line oc p;
+	  Printf.fprintf oc "\tjr\t%s" reg_ra;
 	  line oc p)
       | _ ->
 	 (g'_args oc [] ys zs p;
 	  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero x;
+	  line oc p;
+          Printf.fprintf oc "\tjr\t%s" reg_tmp;
 	  line oc p));
-     Printf.fprintf oc "\tjr\t%s" reg_ra;
-     line oc p
   | NonTail(a), CallCls(x, ys, zs, p) ->
      g'_args oc [(x, reg_cl)] ys zs p;
      let ss = stacksize () in

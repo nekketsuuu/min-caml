@@ -1,3 +1,11 @@
+(*
+let rec f i =
+  if i<=0 then 0.0
+  else (read_float ()) +. (f (i-1)) in
+print_int (int_of_float (f 20))
+ *)
+
+
 let in1 = read_int () in
 let in2 = read_int () in
 let in3 = read_int () in
