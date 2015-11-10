@@ -65,13 +65,14 @@ let rec alloc cont regenv x t prefer =
   let free = fv cont in
   try
     let live = (* 生きているレジスタ *)
-      (List.fold_left
-         (fun live y ->
-	  if is_reg y then S.add y live else
-	    try S.add (M.find y regenv) live
-	    with Not_found -> live)
-         S.empty
-         free) in
+      S.add reg_cl
+	    (List.fold_left
+               (fun live y ->
+		if is_reg y then S.add y live else
+		  try S.add (M.find y regenv) live
+		  with Not_found -> live)
+               S.empty
+               free) in
     let r = (* そうでないレジスタを探す *)
       List.find
         (fun r -> not (S.mem r live))
@@ -85,7 +86,7 @@ let rec alloc cont regenv x t prefer =
         (fun y ->
 	  not (is_reg y) &&
           try (let x = M.find y regenv in
-	       (List.mem x all))
+	       (x <> reg_cl) && (List.mem x all))
           with Not_found -> false)
         (List.rev free) in
     Format.eprintf "spilling %s from %s@." y (M.find y regenv);
