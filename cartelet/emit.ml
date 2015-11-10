@@ -303,8 +303,10 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
   (* 関数呼び出しの仮想命令の実装 (caml2html: emit_call) *)
   | Tail, CallCls(x, ys, zs, p) -> (* 末尾呼び出し (caml2html: emit_tailcall) *)
      g'_args oc [(x, reg_cl)] ys zs p;
-     Printf.fprintf oc "\tjr\t%s" reg_cl;
-     line oc p
+     Printf.fprintf oc "\tld\t0(%s) %s" reg_cl reg_sw;
+     line oc p;
+     Printf.fprintf oc "\tjr\t%s" reg_sw;
+     line oc p;
   | Tail, CallDir(Id.L(x), ys, zs, p) -> (* 末尾呼び出し *)
      (match x with
       | "min_caml_fabs" | "min_caml_abs_float" ->
@@ -326,7 +328,9 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p;
      Printf.fprintf oc "\tst\t0(%s) %s" reg_sp reg_ra;
      line oc p;
-     Printf.fprintf oc "\tjalr\t%s" reg_cl;
+     Printf.fprintf oc "\tld\t0(%s) %s" reg_cl reg_sw;
+     line oc p;
+     Printf.fprintf oc "\tjalr\t%s" reg_sw;
      line oc p;
      Printf.fprintf oc "\tld\t0(%s) %s" reg_sp reg_ra;
      line oc p;
