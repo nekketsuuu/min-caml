@@ -484,7 +484,7 @@ let f oc (Prog(data, fundefs, e)) =
   (if mem ["read_int"; "read_float"; "read_int_byte"; "read_float_byte"] then
      (Printf.fprintf oc "min_caml_read_float_c1:\n";
       Printf.fprintf oc "\t.long\t0x3dcccccd\n"));
-  (if mem ["int_of_float"; "truncate"; "float_of_int"] then
+  (if mem ["int_of_float"; "truncate"; "float_of_int"; "read_int"; "read_float"] then
      (Printf.fprintf oc "min_caml_float_int_c1:\n";
       Printf.fprintf oc "\t.long\t0xcb000000\n"; (* (float)(-838860) *)
       Printf.fprintf oc "min_caml_float_int_c2:\n";

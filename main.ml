@@ -120,8 +120,8 @@ let file f = (* ファイルをコンパイルしてファイルに出力する (caml2html: main_file
   let libchan = open_in "libmincaml.S" in (* ad hoc library load for cartelet [should be deleted] *)
   try
     lexbuf outchan (Lexing.from_channel inchan);
-    ((* 本当はリンカがすべき仕事 *)
-      if !debug_level = Debug.Emit then
+    (if !debug_level = Debug.Emit then
+       (* 本当はリンカがすべき仕事 *)
        (output_string outchan "\n# Library Begin\n";
 	cat libchan outchan;
 	catlib "lib/libmincaml_create_array.S" outchan;
