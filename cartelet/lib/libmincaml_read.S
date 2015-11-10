@@ -1,27 +1,32 @@
 # read_int (32bit, ASCII -> byte)
 min_caml_read_int:
-	# [0-9]が送られ続けてくる間受け取り、それ以外が来たらbreak
-	# 1桁目から[0-9-]じゃなかったときやオーバーフローしたときの挙動はundefinedとしておく
-	# こっそりr3に、区切り文字のASCIIを入れて返す
-	# r2: ans, r3: buffer, r8: FLAG, r9: '0', r10: '9', r11, r12, r13: temp
+	# [0-9-]が送られてくるまでrecv8し続ける。
+	# その後[0-9]が送られ続けてくる間受け取り、それ以外が来たらbreak
+	# オーバーフローしたときの挙動はundefinedとしておく
+	# こっそりr3に、区切り文字(数字の直後の1文字)のASCIIを入れて返す(read_float用)
+	# r2: ans, r3: buffer, r8: FLAG, r9: '0', r10: '9', r11, r12, r13, r14: temp
 	addi	%r9 %r0 $0x30
 	addi	%r10 %r0 $0x39
 	addi	%r3 %r0 $0
 	# 最初の1bitはマイナスかもしれない
-	recv8	%r3
 	addi	%r11 %r0 $0x2d  # '-'
-	bneq	%r3 %r11 min_caml_read_int_positive
+	addi	%r12 %r0 min_caml_read_int_start
+min_caml_read_int_start:
+	recv8	%r3
+	beq	%r3 %r11 min_caml_read_int_negative
+	slt	%r13 %r3 %r9
+	slt	%r14 %r10 %r3
+	add	%r13 %r13 %r14
+	beq	%r13 %r0 min_caml_read_int_positive
+	jr	%r12
+min_caml_read_int_negative:
 	addi	%r8 %r0 $1
 	addi	%r2 %r0 $0
 	addi	%r11 %r0 min_caml_read_int_loop
 	jr	%r11
 min_caml_read_int_positive:
 	addi	%r8 %r0 $0
-	slt	%r11 %r3 %r9
-	bneq	%r11 %r0 min_caml_read_int_exit
-	slt	%r11 %r10 %r3
-	bneq	%r11 %r0 min_caml_read_int_exit
-	addi	%r2 %r3 $-48
+	addi	%r2 %r3 $-48  # ASCII to binary
 min_caml_read_int_loop:
 	# recieve
 	recv8	%r3

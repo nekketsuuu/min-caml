@@ -58,6 +58,7 @@
 /test/*
 !/test/*.ml
 !/test/*.c
+!/test/*.in
 /test/*.cat.ml
 /error_test/*
 !/error_test/*.ml
