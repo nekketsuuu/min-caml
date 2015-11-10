@@ -298,9 +298,9 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
   (* 関数呼び出しの仮想命令の実装 (caml2html: emit_call) *)
   | Tail, CallCls(x, ys, zs, p) -> (* 末尾呼び出し (caml2html: emit_tailcall) *)
      g'_args oc [(x, reg_cl)] ys zs p;
-     Printf.fprintf oc "\tld\t0(%s) %s" reg_cl reg_sw;
+     Printf.fprintf oc "\tld\t0(%s) %s" reg_cl reg_tmp;
      line oc p;
-     Printf.fprintf oc "\tjr\t%s" reg_sw;
+     Printf.fprintf oc "\tjr\t%s" reg_tmp;
      line oc p;
   | Tail, CallDir(Id.L(x), ys, zs, p) -> (* 末尾呼び出し *)
      (match x with
@@ -325,9 +325,9 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p;
      Printf.fprintf oc "\tst\t0(%s) %s" reg_sp reg_ra;
      line oc p;
-     Printf.fprintf oc "\tld\t0(%s) %s" reg_cl reg_sw;
+     Printf.fprintf oc "\tld\t0(%s) %s" reg_cl reg_tmp;
      line oc p;
-     Printf.fprintf oc "\tjalr\t%s" reg_sw;
+     Printf.fprintf oc "\tjalr\t%s" reg_tmp;
      line oc p;
      Printf.fprintf oc "\tld\t0(%s) %s" reg_sp reg_ra;
      line oc p;
@@ -344,14 +344,14 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
       | "min_caml_fabs" | "min_caml_abs_float" ->
 	 (Printf.fprintf oc "\tfabs\t%s %s" a (List.hd zs);
 	  line oc p;
-	  if a <> reg_rv then (* 後でもう少し確認する *)
-	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv reg_zero a;
+	  if a <> reg_frv then (* 後でもう少し確認する *)
+	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_frv reg_zero a;
 	     line oc p))
       | "min_caml_sqrt" ->
 	 (Printf.fprintf oc "\tfsqrt\t%s %s" a (List.hd zs);
 	  line oc p;
-	  if a <> reg_rv then
-	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv reg_zero a;
+	  if a <> reg_frv then
+	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_frv reg_zero a;
 	     line oc p))
       | _ ->
 	 (g'_args oc [] ys zs p;
