@@ -22,30 +22,21 @@ min_caml_floor_small:
 	addi	%r29 %r29 $2
 	fld	-1(%r29) %f1
 	# f0: float_of_int(int_of_float(x)), f1: x, f2: -1.0f, f3: 0.0f, f4: 1.0f
-	# x<0ならfloor(x)+1を求めているので-1する
+	# %f0-1 < x < %f0となっているときは-1する
 	addi	%r8 %r0 min_caml_float_minus_1
 	fld	0(%r8) %f2
+	fslt	%f1 %f0
+	bclf	min_caml_floor_sign
+	fadd	%f3 %f0 %f2
+	fslt	%f3 %f1
+	bclf	min_caml_floor_sign
+	fadd	%f0 %f0 %f2
+min_caml_floor_sign:
+	jr	%r31
+	# x<0ならfloor(x)+1を求めているので-1する
 	addi	%r8 %r0 min_caml_float_0
 	fld	0(%r8) %f3
 	fslt	%f1 %f3
-	bclf	min_caml_floor_positive
-	fadd	%f0 %f0 %f2
-min_caml_floor_negative:
-	# x < %f0 < x+1となっているときは+1する
-	fslt	%f1 %f0
-	bclf	min_caml_floor_exit
-	addi	%r8 %r0 min_caml_float_1
-	fld	0(%r8) %f4
-	fadd	%f1 %f1 %f4
-	fslt	%f0 %f1
-	bclf	min_caml_floor_exit
-	fadd	%f0 %f0 %f4
-min_caml_floor_positive:
-	# x-1 < %f0 < xとなっているときは-1する
-	fslt	%f0 %f1
-	bclf	min_caml_floor_exit
-	fadd	%f1 %f1 %f2
-	fslt	%f1 %f0
 	bclf	min_caml_floor_exit
 	fadd	%f0 %f0 %f2
 min_caml_floor_exit:
