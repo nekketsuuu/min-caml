@@ -213,8 +213,8 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
       line oc p
   | Tail, (Restore(x, p) as exp) ->
      (match locate x with
-      | [i] -> g' oc (NonTail(regs.(0)), exp)
-      | [i; j] when i + 1 = j -> g' oc (NonTail(fregs.(0)), exp)
+      | [i] -> g' oc (NonTail(reg_rv), exp)
+      | [i; j] when i + 1 = j -> g' oc (NonTail(reg_frv), exp)
       | _ -> assert false);
      Printf.fprintf oc "\tjr\t%s" reg_ra;
      line oc p
@@ -532,6 +532,6 @@ let f oc (Prog(data, fundefs, e)) =
   stackset := S.empty;
   stackmap := [];
   Printf.fprintf oc "\t# Main Program Begin\n";
-  g oc (NonTail(regs.(0)), e);
+  g oc (NonTail(reg_rv), e);
   Printf.fprintf oc "\t# Main Program End\n";
   Printf.fprintf oc "\thalt\n";
