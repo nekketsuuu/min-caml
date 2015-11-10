@@ -86,7 +86,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p;
   | NonTail(x), Div(y, z', p) ->
      assert(z' = C(2));
-     (* 正負に分けて符号を後で足す *)
+     (* sraが無いので正負に分ける *)
      let pos_div = Id.genid "div_positive" in
      let div_exit = Id.genid "div_exit" in
      Printf.fprintf oc "\tslt\t%s %s %s" reg_tmp y reg_zero;
