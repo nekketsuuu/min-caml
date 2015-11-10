@@ -1,11 +1,9 @@
-(*
 let rec f i =
   if i<=0 then 0.0
   else (read_float ()) +. (f (i-1)) in
-print_int (int_of_float (f 20))
- *)
+print_int (int_of_float (f 287))
 
-
+(*
 let in1 = read_int () in
 let in2 = read_int () in
 let in3 = read_int () in
@@ -36,4 +34,4 @@ print_int in9;
 print_newline ();
 print_int in10;
 print_newline ();
-
+ *)

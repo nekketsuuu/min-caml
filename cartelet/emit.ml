@@ -86,13 +86,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p;
   | NonTail(x), Div(y, z', p) ->
      assert(z' = C(2));
-(*
-     Printf.fprintf oc "\taddi\t%s %s $1" reg_tmp reg_zero;
-     line oc p;
-     Printf.fprintf oc "\tsra\t%s %s %s" x y reg_tmp;
-     line oc p;
- *)
-     (* sraが無くなったので正負に分けて符号を後で足す *)
+     (* 正負に分けて符号を後で足す *)
      let pos_div = Id.genid "div_positive" in
      let div_exit = Id.genid "div_exit" in
      Printf.fprintf oc "\tslt\t%s %s %s" reg_tmp reg_tmp reg_zero;
@@ -321,10 +315,8 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
 	  line oc p)
       | _ ->
 	 (g'_args oc [] ys zs p;
-	  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero x;
-	  line oc p;
-          Printf.fprintf oc "\tjr\t%s" reg_tmp;
-	  line oc p));
+	  Printf.fprintf oc "\tbeq\t%s %s %s" reg_zero reg_zero x;
+	  line oc p
   | NonTail(a), CallCls(x, ys, zs, p) ->
      g'_args oc [(x, reg_cl)] ys zs p;
      let ss = stacksize () in
@@ -405,9 +397,7 @@ and g'_non_tail_if oc dest e1 e2 b reg1 reg2 p =
   let stackset_back = !stackset in
   g oc (dest, e2);
   let stackset1 = !stackset in
-  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero b_cont;
-  line oc p;
-  Printf.fprintf oc "\tjr\t%s" reg_tmp;
+  Printf.fprintf oc "\tbeq\t%s %s %s" reg_zero reg_zero b_cont;
   line oc p;
   Printf.fprintf oc "%s:\n" b_true;
   stackset := stackset_back;
@@ -423,9 +413,7 @@ and g'_non_tail_if_float oc dest e1 e2 b p =
   let stackset_back = !stackset in
   g oc (dest, e2);
   let stackset1 = !stackset in
-  Printf.fprintf oc "\taddi\t%s %s %s" reg_tmp reg_zero b_cont;
-  line oc p;
-  Printf.fprintf oc "\tjr\t%s" reg_tmp;
+  Printf.fprintf oc "\tbeq\t%s %s %s" reg_zero reg_zero b_cont;
   line oc p;
   Printf.fprintf oc "%s:\n" b_true;
   stackset := stackset_back;

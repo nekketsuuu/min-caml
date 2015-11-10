@@ -83,6 +83,10 @@ raytracer: $(RESULT) raytracer/min-rt.ml $(HEADERS) del_raytracer
 	@cat $(HEADERS) raytracer/min-rt.ml > raytracer/min-rt.cat.ml
 	./$(RESULT) -inline $(INLINE) -debug $(LEVEL) raytracer/min-rt.cat
 
+raytracer-edited: $(RESULT) raytracer/min-rt-edited.ml $(HEADERS) del_raytracer
+	@cat $(HEADERS) raytracer/min-rt-edited.ml > raytracer/min-rt.cat.ml
+	./$(RESULT) -inline $(INLINE) -debug $(LEVEL) raytracer/min-rt.cat
+
 .PHONY: del_raytracer
 del_raytracer:
 	rm -f raytracer/min-rt.cat.ml
