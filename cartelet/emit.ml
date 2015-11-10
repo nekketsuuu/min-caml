@@ -89,20 +89,21 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      (* 正負に分けて符号を後で足す *)
      let pos_div = Id.genid "div_positive" in
      let div_exit = Id.genid "div_exit" in
-     Printf.fprintf oc "\tslt\t%s %s %s" reg_tmp reg_tmp reg_zero;
+     Printf.fprintf oc "\tslt\t%s %s %s" reg_tmp y reg_zero;
      line oc p;
      Printf.fprintf oc "\tbeq\t%s %s %s" reg_tmp reg_zero pos_div;
      line oc p;
      (* negative *)
+     (* intの最小値に対して微妙に正しくないが使わない(はず) *)
+     Printf.fprintf oc "\tsub\t%s %s %s" x reg_zero y;
+     line oc p;
      Printf.fprintf oc "\taddi\t%s %s $1" reg_tmp reg_zero;
      line oc p;
-     Printf.fprintf oc "\tsrl\t%s %s %s" x y reg_tmp;
+     Printf.fprintf oc "\tsrl\t%s %s %s" reg_tmp x reg_tmp;
      line oc p;
-     Printf.fprintf oc "\taddiu32\t%s %s $%d" x x 2147483648; (* 0x80000000 *)
+     Printf.fprintf oc "\tsub\t%s %s %s" x reg_zero reg_tmp;
      line oc p;
-     Printf.fprintf oc "\taddiu\t%s %s %s" reg_tmp reg_zero div_exit;
-     line oc p;
-     Printf.fprintf oc "\tjr\t%s" reg_tmp;
+     Printf.fprintf oc "\tbeq\t%s %s %s" reg_zero reg_zero div_exit;
      line oc p;
      (* positive *)
      Printf.fprintf oc "%s:\n" pos_div;
@@ -316,7 +317,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
       | _ ->
 	 (g'_args oc [] ys zs p;
 	  Printf.fprintf oc "\tbeq\t%s %s %s" reg_zero reg_zero x;
-	  line oc p
+	  line oc p));
   | NonTail(a), CallCls(x, ys, zs, p) ->
      g'_args oc [(x, reg_cl)] ys zs p;
      let ss = stacksize () in
