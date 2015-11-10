@@ -334,7 +334,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      Printf.fprintf oc "\taddi\t%s %s $%d" reg_sp reg_sp (ss+1);
      line oc p;
      if List.mem a allregs && a <> reg_rv then
-       (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv reg_zero a;
+       (Printf.fprintf oc "\tadd\t%s %s %s" a reg_zero reg_rv;
 	line oc p)
      else if List.mem a allfregs && a <> reg_frv then
        (Printf.fprintf oc "\tfmov\t%s %s" reg_frv a;
@@ -345,13 +345,13 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
 	 (Printf.fprintf oc "\tfabs\t%s %s" a (List.hd zs);
 	  line oc p;
 	  if a <> reg_frv then (* 後でもう少し確認する *)
-	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_frv reg_zero a;
+	    (Printf.fprintf oc "\tadd\t%s %s %s" a reg_zero reg_frv;
 	     line oc p))
       | "min_caml_sqrt" ->
 	 (Printf.fprintf oc "\tfsqrt\t%s %s" a (List.hd zs);
 	  line oc p;
 	  if a <> reg_frv then
-	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_frv reg_zero a;
+	    (Printf.fprintf oc "\tadd\t%s %s %s" a reg_zero reg_frv;
 	     line oc p))
       | _ ->
 	 (g'_args oc [] ys zs p;
@@ -367,7 +367,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
 	  Printf.fprintf oc "\taddi\t%s %s $%d" reg_sp reg_sp (ss+1);
 	  line oc p;
 	  if List.mem a allregs && a <> reg_rv then
-	    (Printf.fprintf oc "\tadd\t%s %s %s" reg_rv reg_zero a;
+	    (Printf.fprintf oc "\tadd\t%s %s %s" a reg_zero reg_rv;
 	     line oc p)
 	  else if List.mem a allfregs && a <> reg_frv then
 	    (Printf.fprintf oc "\tfmov\t%s %s" reg_frv a;
