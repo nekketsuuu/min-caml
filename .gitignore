@@ -49,11 +49,15 @@
 /shootout/*.o
 /shootout/*.out
 
-/raytracer/min-rt
-/raytracer/min-rt_b
-/raytracer/min-rt.cat.ml
-/raytracer/*.s
-/raytracer/*.out
+/raytracer/*
+!/raytracer/*.ml
+/raytracer/*.cat.ml
+!/raytracer/*.mli
+!/raytracer/*.head
+!/raytracer/Makefile
+!/raytracer/preprocess.sh
+!/raytracer/readme.txt
+!/raytracer/sld/
 
 /test/*
 !/test/*.ml
