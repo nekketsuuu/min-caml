@@ -119,7 +119,7 @@ min_caml_print_int_send:
 	send8	%r9
 min_caml_print_int_exit:
 	jr	%r31
-# print_int (32bit, byte -> byte)
+# print_int_byte (32bit, byte -> byte)
 min_caml_print_int_byte:
 	addi	%r8 %r0 $8
 	send8	%r2
@@ -130,7 +130,7 @@ min_caml_print_int_byte:
 	srl	%r2 %r2 %r8
 	send8	%r2
 	jr	%r31
-# print_float (32bit, byte -> byte)
+# print_float_byte (32bit, byte -> byte)
 min_caml_print_float_byte:
 	fst	-1(%r29) %f0
 	ld	-1(%r29) %r8

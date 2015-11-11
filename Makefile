@@ -60,13 +60,21 @@ LEVEL = Asm
 .PHONY: debug
 debug: del_debug $(TESTS:%=test/%.out)
 
+debugasm: del_asm $(TESTS:%=test/%.cat.s)
+
 test/%.out: $(RESULT) test/%.ml libminrt.ml.head
 	@cat libminrt.ml.head test/$*.ml > test/$*.cat.ml
 	./$(RESULT) -inline $(INLINE) -debug $(LEVEL) test/$*.cat
 
-.PHONY: del_debug
+test/%.cat.s: $(RESULT) test/%.ml libminrt.ml.head
+	@cat libminrt.ml.head test/$*.ml > test/$*.cat.ml
+	./$(RESULT) -inline $(INLINE) test/$*.cat
+
+.PHONY: del_debug del_asm
 del_debug:
 	rm -f test/*.out
+del_asm:
+	rm -f test/*.cat.s
 
 .PHONY: debuglist
 debuglist:
