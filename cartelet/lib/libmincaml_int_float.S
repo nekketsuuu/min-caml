@@ -4,14 +4,9 @@
 ## 加算を倍々に足すやつにすべき(あとでする)
 ##
 
-# truncate
-min_caml_truncate:
-	# int_of_float(x+0.5)
-	addi	%r8 %r0 min_caml_float_half
-	fld	0(%r8) %f1
-	fadd	%f0 %f0 %f1
-# int_of_float
+# int_of_float (a.k.a. truncate)
 min_caml_int_of_float:
+min_caml_truncate:
 	# FLAGを決めてabsをする
 	addi	%r9 %r0 min_caml_float_0
 	fld	0(%r9) %f1
