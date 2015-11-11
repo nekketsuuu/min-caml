@@ -118,7 +118,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p;
      Printf.fprintf oc "\tld\t0(%s) %s" reg_tmp x;
      line oc p
-  | NonTail(x), Ld(y, C(j), i, p) ->
+  | NonTail(x), Ld(y, C(j), i, p) -> (* オーバーフロー大丈夫? *)
      assert(i = 4);
      Printf.fprintf oc "\tld\t%d(%s) %s" j y x;
      line oc p
@@ -128,7 +128,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p;
      Printf.fprintf oc "\tst\t0(%s) %s" reg_tmp x;
      line oc p
-  | NonTail(_), St(x, y, C(j), i, p) ->
+  | NonTail(_), St(x, y, C(j), i, p) -> (* オーバーフロー大丈夫? *)
      assert(i = 4);
      Printf.fprintf oc "\tst\t%d(%s) %s" j y x;
      line oc p
@@ -142,17 +142,17 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      Printf.fprintf oc "\tfadd\t%s %s %s" x y z;
      line oc p
   | NonTail(x), FSub(y, z, p) ->
-     Printf.fprintf oc "\tfneg\t%s %s" z z;
+     Printf.fprintf oc "\tfneg\t%s %s" reg_tmp z;
      line oc p;
-     Printf.fprintf oc "\tfadd\t%s %s %s" x y z;
+     Printf.fprintf oc "\tfadd\t%s %s %s" x y reg_tmp;
      line oc p
   | NonTail(x), FMul(y, z, p) ->
      Printf.fprintf oc "\tfmul\t%s %s %s" x y z;
      line oc p
   | NonTail(x), FDiv(y, z, p) ->
-     Printf.fprintf oc "\tfinv\t%s %s" z z;
+     Printf.fprintf oc "\tfinv\t%s %s" reg_tmp z;
      line oc p;
-     Printf.fprintf oc "\tfmul\t%s %s %s" x y z;
+     Printf.fprintf oc "\tfmul\t%s %s %s" x y reg_tmp;
      line oc p
   | NonTail(x), LdF(y, V(z), i, p) ->
      assert(i = 4);
@@ -160,7 +160,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p;
      Printf.fprintf oc "\tfld\t0(%s) %s" reg_tmp x;
      line oc p
-  | NonTail(x), LdF(y, C(j), i, p) ->
+  | NonTail(x), LdF(y, C(j), i, p) -> (* オーバーフロー大丈夫? *)
      assert(i = 4);
      Printf.fprintf oc "\tfld\t%d(%s) %s" j y x;
      line oc p
@@ -170,7 +170,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p;
      Printf.fprintf oc "\tfst\t0(%s) %s" reg_tmp x;
      line oc p
-  | NonTail(_), StF(x, y, C(j), i, p) ->
+  | NonTail(_), StF(x, y, C(j), i, p) -> (* オーバーフロー大丈夫? *)
      assert(i = 4);
      Printf.fprintf oc "\tfst\t%d(%s) %s" j y x;
      line oc p
