@@ -1,4 +1,6 @@
 let rec f i =
+  print_int i;
+  print_newline ();
   if i<=0 then 0.0
   else (read_float ()) +. (f (i-1)) in
 print_int (int_of_float (f 287))

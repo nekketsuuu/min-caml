@@ -45,12 +45,21 @@ do_test: $(TESTS:%=test/%.cmp)
 .PRECIOUS: test/%.s test/% test/%.res test/%.ans test/%.cmp test/%.out
 TRASH = $(TESTS:%=test/%.s) $(TESTS:%=test/%) $(TESTS:%=test/%.res) $(TESTS:%=test/%.ans) $(TESTS:%=test/%.cmp) $(TESTS:%=test/%.out) $(TESTS:%=test/%.cat.ml) $(TESTS:%=test/%.cat.out) $(TESTS:%=test/%.cat.s) $(TESTS:%=test/%.o) $(TESTS:%=test/%.log) test/*.hex test/*.bin 
 
-test/%.s: $(RESULT) test/%.ml
-	./$(RESULT) test/$*
-test/%: test/%.s libmincaml.S stub.c
-	$(CC) $(CFLAGS) -m32 $^ -lm -o $@
+#test/%.s: $(RESULT) test/%.ml
+#	./$(RESULT) test/$*
+#test/%: test/%.s libmincaml.S stub.c
+#	$(CC) $(CFLAGS) -m32 $^ -lm -o $@
 #test/%.res: test/%
 #	$< > $@
+# OCamlのread_floatは1行ずつしか読めないのでSLDファイルを変換しておく
+test/read.ans: answer.ml.head test/read.ml
+	@cat answer.ml.head test/read.ml > test/read.answer.cat.ml
+	ocaml test/read.answer.cat.ml > $@ < test/tron.ans.sld
+	@rm -f test/read.answer.cat.ml
+test/fb.ans: answer.ml.head test/fb.ml
+	@cat answer.ml.head test/fb.ml > test/fb.answer.cat.ml
+	ocaml test/fb.answer.cat.ml > $@ < test/test.in
+	@rm -f test/fb.answer.cat.ml
 test/%.ans: answer.ml.head test/%.ml
 	@cat answer.ml.head test/$*.ml > test/$*.answer.cat.ml
 	ocaml test/$*.answer.cat.ml > $@
