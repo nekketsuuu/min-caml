@@ -3,6 +3,9 @@
 # ack.mlなどのテストプログラムをtest/に用意してmake do_testを実行すると、
 # min-camlとocamlでコンパイル・実行した結果を自動で比較します。
 
+ASM = ${HOME}/2015/cpu-jikken/CarteletV1/asm/asm
+SIM = ${HOME}/2015/cpu-jikken/sim/rin
+
 RESULT = min-caml
 NCSUFFIX = .opt
 CC = gcc
@@ -39,7 +42,7 @@ muldiv float array read fb
 do_test: $(TESTS:%=test/%.cmp)
 
 .PRECIOUS: test/%.s test/% test/%.res test/%.ans test/%.cmp test/%.out
-TRASH = $(TESTS:%=test/%.s) $(TESTS:%=test/%) $(TESTS:%=test/%.res) $(TESTS:%=test/%.ans) $(TESTS:%=test/%.cmp) $(TESTS:%=test/%.out) $(TESTS:%=test/%.cat.ml) $(TESTS:%=test/%.cat.out) $(TESTS:%=test/%.cat.s) test/*.hex test/*.bin 
+TRASH = $(TESTS:%=test/%.s) $(TESTS:%=test/%) $(TESTS:%=test/%.res) $(TESTS:%=test/%.ans) $(TESTS:%=test/%.cmp) $(TESTS:%=test/%.out) $(TESTS:%=test/%.cat.ml) $(TESTS:%=test/%.cat.out) $(TESTS:%=test/%.cat.s) $(TESTS:%=test/%.o) $(TESTS:%=test/%.log) test/*.hex test/*.bin 
 
 test/%.s: $(RESULT) test/%.ml
 	./$(RESULT) test/$*
@@ -58,9 +61,11 @@ INLINE = 20
 LEVEL = Asm
 
 .PHONY: debug
-debug: del_debug $(TESTS:%=test/%.out)
+debug: del_out $(TESTS:%=test/%.out)
 
 debugasm: del_asm $(TESTS:%=test/%.cat.s)
+
+debugtest: del_log $(TESTS:%=test/%.log)
 
 test/%.out: $(RESULT) test/%.ml libminrt.ml.head
 	@cat libminrt.ml.head test/$*.ml > test/$*.cat.ml
@@ -70,11 +75,25 @@ test/%.cat.s: $(RESULT) test/%.ml libminrt.ml.head
 	@cat libminrt.ml.head test/$*.ml > test/$*.cat.ml
 	./$(RESULT) -inline $(INLINE) test/$*.cat
 
+test/read.log: $(RESULT) test/read.cat.s
+	${ASM} -format o test/read.cat.s > test/read.o
+	${SIM} -i test/tron.sld -o test/read.log test/read.o -r
+
+test/fb.log: $(RESULT) test/fb.cat.s
+	${ASM} -format o test/fb.cat.s > test/fb.o
+	${SIM} -i test/test.in -o test/fb.log test/fb.o -r
+
+test/%.log: $(RESULT) test/%.cat.s
+	${ASM} -format o test/$*.cat.s > test/$*.o
+	${SIM} -o test/$*.log test/$*.o -r
+
 .PHONY: del_debug del_asm
-del_debug:
+del_out:
 	rm -f test/*.out
 del_asm:
 	rm -f test/*.cat.s
+del_log:
+	rm -f test/*.log
 
 .PHONY: debuglist
 debuglist:

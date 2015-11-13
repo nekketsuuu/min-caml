@@ -46,7 +46,7 @@ and source' t = function
   | Add(x, V y, _) | Mul(x, V y, _) | FAdd(x, y, _) | FMul(x, y, _) -> [x; y] (* Mul(x, V y, _) は無いはず *)
   | IfEq(_, _, e1, e2, _) | IfLE(_, _, e1, e2, _) | IfGE(_, _, e1, e2, _) | IfFEq(_, _, e1, e2, _) | IfFLE(_, _, e1, e2, _) ->
       source t e1 @ source t e2
-  | CallCls _ | CallDir _ -> (match t with Type.Unit -> [] | Type.Float -> [fregs.(0)] | _ -> [regs.(0)])
+  | CallCls _ | CallDir _ -> (match t with Type.Unit -> [] | Type.Float -> [reg_frv] | _ -> [reg_rv])
   | _ -> []
 
 type alloc_result = (* allocにおいてspillingがあったかどうかを表すデータ型 *)
