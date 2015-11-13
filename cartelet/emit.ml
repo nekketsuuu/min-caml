@@ -225,8 +225,10 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
   | Tail, IfEq(x, C(y), e1, e2, p) ->
      if y <> 0 then
        (Printf.fprintf oc "\taddi\t%s %s $%d" reg_tmp x (-y);
-	line oc p);
-     g'_tail_if oc e1 e2 "beq" reg_tmp reg_zero p
+	line oc p;
+	g'_tail_if oc e1 e2 "beq" reg_tmp reg_zero p)
+     else
+	g'_tail_if oc e1 e2 "beq" x reg_zero p
   | Tail, IfLE(x, V(y), e1, e2, p) ->
      Printf.fprintf oc "\tslt\t%s %s %s" reg_tmp y x;
      line oc p;
@@ -264,8 +266,10 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
   | NonTail(z), IfEq(x, C(y), e1, e2, p) ->
      if y <> 0 then
        (Printf.fprintf oc "\taddi\t%s %s $%d" reg_tmp x (-y);
-	line oc p);
-     g'_non_tail_if oc (NonTail(z)) e1 e2 "beq" reg_tmp reg_zero p
+	line oc p;
+	g'_non_tail_if oc (NonTail(z)) e1 e2 "beq" reg_tmp reg_zero p)
+     else
+	g'_non_tail_if oc (NonTail(z)) e1 e2 "beq" x reg_zero p
   | NonTail(z), IfLE(x, V(y), e1, e2, p) ->
      Printf.fprintf oc "\tslt\t%s %s %s" reg_tmp y x;
      line oc p;

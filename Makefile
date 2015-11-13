@@ -48,8 +48,8 @@ test/%.s: $(RESULT) test/%.ml
 	./$(RESULT) test/$*
 test/%: test/%.s libmincaml.S stub.c
 	$(CC) $(CFLAGS) -m32 $^ -lm -o $@
-test/%.res: test/%
-	$< > $@
+#test/%.res: test/%
+#	$< > $@
 test/%.ans: test/%.ml
 	ocaml $< > $@
 test/%.cmp: test/%.res test/%.ans
@@ -65,7 +65,9 @@ debug: del_out $(TESTS:%=test/%.out)
 
 debugasm: del_asm $(TESTS:%=test/%.cat.s)
 
-debugtest: del_log $(TESTS:%=test/%.log)
+debugtest: del_log $(TESTS:%=test/%.res)
+
+debugcmp: del_cmp $(TESTS:%=test/%.cmp)
 
 test/%.out: $(RESULT) test/%.ml libminrt.ml.head
 	@cat libminrt.ml.head test/$*.ml > test/$*.cat.ml
@@ -75,25 +77,27 @@ test/%.cat.s: $(RESULT) test/%.ml libminrt.ml.head
 	@cat libminrt.ml.head test/$*.ml > test/$*.cat.ml
 	./$(RESULT) -inline $(INLINE) test/$*.cat
 
-test/read.log: $(RESULT) test/read.cat.s
+test/read.res: $(RESULT) test/read.cat.s
 	${ASM} -format o test/read.cat.s > test/read.o
-	${SIM} -i test/tron.sld -o test/read.log test/read.o -r
+	${SIM} -i test/tron.sld -o $@ test/read.o -r
 
-test/fb.log: $(RESULT) test/fb.cat.s
+test/fb.res: $(RESULT) test/fb.cat.s
 	${ASM} -format o test/fb.cat.s > test/fb.o
-	${SIM} -i test/test.in -o test/fb.log test/fb.o -r
+	${SIM} -i test/test.in -o $@ test/fb.o -r
 
-test/%.log: $(RESULT) test/%.cat.s
+test/%.res: $(RESULT) test/%.cat.s
 	${ASM} -format o test/$*.cat.s > test/$*.o
-	${SIM} -o test/$*.log test/$*.o -r
+	${SIM} -o $@ test/$*.o -r
 
-.PHONY: del_debug del_asm
+.PHONY: del_debug del_asm del_log del_cmp
 del_out:
 	rm -f test/*.out
 del_asm:
 	rm -f test/*.cat.s
 del_log:
 	rm -f test/*.log
+del_cmp:
+	rm -f test/*.cmp
 
 .PHONY: debuglist
 debuglist:
