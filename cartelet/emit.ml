@@ -21,6 +21,7 @@ let locate x =
     | y :: zs when x = y -> 0 :: List.map succ (loc zs)
     | y :: zs -> List.map succ (loc zs) in
   loc !stackmap
+(** あやしい *)
 let offset x = (List.hd (locate x)) + 1
 let stacksize () = List.length !stackmap * 1
 
@@ -135,7 +136,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      line oc p
   | NonTail(x), FMov(y, p) ->
      if x <> y then (Printf.fprintf oc "\tfmov\t%s %s" y x;
-		      line oc p)
+		     line oc p)
   | NonTail(x), FNeg(y, p) ->
      Printf.fprintf oc "\tfneg\t%s %s" x y;
      line oc p
@@ -213,10 +214,14 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
       Printf.fprintf oc "\tjr\t%s" reg_ra;
       line oc p
   | Tail, (Restore(x, p) as exp) ->
-     (match locate x with
+     (if x.[1] = 'r' then
+	g' oc (NonTail(reg_rv), exp)
+      else
+	g' oc (NonTail(reg_frv), exp));
+     (*match locate x with
       | [i] -> g' oc (NonTail(reg_rv), exp)
       | [i; j] when i + 1 = j -> g' oc (NonTail(reg_frv), exp)
-      | _ -> assert false);
+      | _ -> assert false*)
      Printf.fprintf oc "\tjr\t%s" reg_ra;
      line oc p
 (* 後で分岐予測のこと考える *)
