@@ -32,12 +32,13 @@ debug.mli debug.ml debugAsm.mli debugAsm.ml \
 main.mli main.ml
 
 # ↓テストプログラムが増えたら、これも増やす
-TESTS = print sum-tail gcd sum fib ack even-odd \
+TESTS = print sum-tail gcd sum even-odd \
 adder funcomp cls-rec cls-bug cls-bug2 \
 shuffle spill spill2 spill3 join-stack join-stack2 join-stack3 \
 join-reg join-reg2 non-tail-if non-tail-if2 \
 inprod inprod-rec inprod-loop matmul matmul-flat \
-muldiv float array read fb
+muldiv float array read fb \
+fib ack
 
 do_test: $(TESTS:%=test/%.cmp)
 
@@ -50,8 +51,10 @@ test/%: test/%.s libmincaml.S stub.c
 	$(CC) $(CFLAGS) -m32 $^ -lm -o $@
 #test/%.res: test/%
 #	$< > $@
-test/%.ans: test/%.ml
-	ocaml $< > $@
+test/%.ans: answer.ml.head test/%.ml
+	@cat answer.ml.head test/$*.ml > test/$*.answer.cat.ml
+	ocaml test/$*.answer.cat.ml > $@
+	@rm -f test/$*.answer.cat.ml
 test/%.cmp: test/%.res test/%.ans
 	diff $^ > $@
 

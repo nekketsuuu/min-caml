@@ -13,8 +13,7 @@ min_caml_truncate:
 	fslt	%f0 %f1
 	bclt	min_caml_int_of_float_flag_negative
 	addi	%r8 %r0 $0
-	addi	%r9 %r0 min_caml_int_of_float_after_flag
-	jr	%r9
+	beq	%r0 %r0 min_caml_int_of_float_after_flag
 min_caml_int_of_float_flag_negative:
 	addi	%r8 %r0 $1
 	fneg	%f0 %f0
@@ -24,14 +23,14 @@ min_caml_int_of_float_after_flag:
 	fslt	%f0 %f1
 	bclf	min_caml_int_of_float_big
 	# |x| < 8388608.0
-	# r8: FLAG, r9: addr, r10: imm, r11: const for shift
+	# r2: answer, r8: FLAG, r9: addr, r10: imm, r11: const for shift
 	# f0: |x|, f1: 8388608.0
 	fadd	%f0 %f0 %f1
 	fst	-1(%r29) %f0
 	ld	-1(%r29) %r2
 	addiu32	%r10 %r0 $0x4b000000
-	sub	%r10 %r0 %r10
-	add	%r2 %r2 %r10 
+	sub	%r2 %r2 %r10
+	nop
 	# FLAGの調整
 	beq	%r8 %r0 min_caml_int_of_float_small_positive
 	sub	%r2 %r0 %r2
