@@ -51,6 +51,7 @@ val reg_fsw : Id.t
 
 val reg_zero : Id.t
 val reg_tmp : Id.t
+val reg_ftmp : Id.t
 val reg_rv : Id.t
 val reg_frv : Id.t
 val reg_hp : Id.t

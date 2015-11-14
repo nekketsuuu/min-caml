@@ -144,17 +144,17 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      Printf.fprintf oc "\tfadd\t%s %s %s" x y z;
      line oc p
   | NonTail(x), FSub(y, z, p) ->
-     Printf.fprintf oc "\tfneg\t%s %s" reg_tmp z;
+     Printf.fprintf oc "\tfneg\t%s %s" reg_ftmp z;
      line oc p;
-     Printf.fprintf oc "\tfadd\t%s %s %s" x y reg_tmp;
+     Printf.fprintf oc "\tfadd\t%s %s %s" x y reg_ftmp;
      line oc p
   | NonTail(x), FMul(y, z, p) ->
      Printf.fprintf oc "\tfmul\t%s %s %s" x y z;
      line oc p
   | NonTail(x), FDiv(y, z, p) ->
-     Printf.fprintf oc "\tfinv\t%s %s" reg_tmp z;
+     Printf.fprintf oc "\tfinv\t%s %s" reg_ftmp z;
      line oc p;
-     Printf.fprintf oc "\tfmul\t%s %s %s" x y reg_tmp;
+     Printf.fprintf oc "\tfmul\t%s %s %s" x y reg_ftmp;
      line oc p
   | NonTail(x), LdF(y, V(z), i, p) ->
      assert(i = 4);
