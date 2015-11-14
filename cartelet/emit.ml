@@ -135,7 +135,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
      Printf.fprintf oc "\tst\t%d(%s) %s" j y x;
      line oc p
   | NonTail(x), FMov(y, p) ->
-     if x <> y then (Printf.fprintf oc "\tfmov\t%s %s" y x;
+     if x <> y then (Printf.fprintf oc "\tfmov\t%s %s" x y;
 		     line oc p)
   | NonTail(x), FNeg(y, p) ->
      Printf.fprintf oc "\tfneg\t%s %s" x y;
