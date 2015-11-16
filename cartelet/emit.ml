@@ -2,6 +2,8 @@ open Asm
 
 external getfl : float -> int32 = "getfl"
 
+let server_mode = ref false
+
 let stackset = ref S.empty (* すでにSaveされた変数の集合 (caml2html: emit_stackset) *)
 let stackmap = ref [] (* Saveされた変数の、スタックにおける位置 (caml2html: emit_stackmap) *)
 let save x =
@@ -326,6 +328,10 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
 	  line oc p;
 	  Printf.fprintf oc "\tjr\t%s" reg_ra;
 	  line oc p)
+      | "min_caml_read_int" when !server_mode ->
+	 g' oc (Tail, CallDir(Id.L("min_caml_read_int_byte"), ys, zs, p))
+      | "min_caml_read_float" when !server_mode ->
+	 g' oc (Tail, CallDir(Id.L("min_caml_read_float_byte"), ys, zs, p))
       | _ ->
 	 (g'_args oc [] ys zs p;
 	  Printf.fprintf oc "\tbeq\t%s %s %s" reg_zero reg_zero x;
@@ -365,6 +371,10 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
 	  if a <> reg_frv then
 	    (Printf.fprintf oc "\tadd\t%s %s %s" a reg_zero reg_frv;
 	     line oc p))
+      | "min_caml_read_int" when !server_mode ->
+	 g' oc (NonTail(a), CallDir(Id.L("min_caml_read_int_byte"), ys, zs, p))
+      | "min_caml_read_float" when !server_mode ->
+	 g' oc (NonTail(a), CallDir(Id.L("min_caml_read_float_byte"), ys, zs, p))
       | _ ->
 	 (g'_args oc [] ys zs p;
 	  let ss = stacksize () in

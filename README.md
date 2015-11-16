@@ -25,10 +25,22 @@ If you forget this list, type:
 $ make debuglist
 ```
 
+You can also use debugasm, debugtest, and debugcmp. Read Makefile.
+
 To compile raytracer, use
 
 ```bash
 $ make raytracer
+```
+
+Use -server option when you run raytracer on the contest server.
+
+```bash
+$ make raytracer
+$ cd raytracer
+$ asm -format o min-rt.cat.s > min-rt.o
+$ rin -i sld/contest.sld -o min-rt.ppm min-rt.o -r
+$ convert min-rt.ppm min-rt.png
 ```
 
 ----
