@@ -32,13 +32,15 @@ debug.mli debug.ml debugAsm.mli debugAsm.ml \
 main.mli main.ml
 
 # ↓テストプログラムが増えたら、これも増やす
+# FPU命令を使ったテストでは自作FPUの誤差があるのでdiffは生える
 TESTS = print sum-tail gcd sum even-odd \
 adder funcomp cls-rec cls-bug cls-bug2 \
 shuffle spill spill2 spill3 join-stack join-stack2 join-stack3 \
 join-reg join-reg2 non-tail-if non-tail-if2 \
 inprod inprod-rec inprod-loop matmul matmul-flat \
-muldiv float array read fb \
-logistic fib ack tarai
+muldiv array read fb \
+logistic fib ack tarai \
+float
 
 do_test: $(TESTS:%=test/%.cmp)
 

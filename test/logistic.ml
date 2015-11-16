@@ -1,3 +1,4 @@
+(* Thanks to @levelfour *)
 let rec logistic a n x0 =
   if n = 0 then x0
   else

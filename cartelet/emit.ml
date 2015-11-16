@@ -472,6 +472,8 @@ let f oc (Prog(data, fundefs, e)) =
   Format.eprintf "generating assembly...@.";
   Printf.fprintf oc ".data\n";
   (* constant for library *)
+  Printf.fprintf oc "min_caml_2pi:\n";
+  Printf.fprintf oc "\t.long\t0x40c90fdb\n";
   Printf.fprintf oc "min_caml_pi:\n";
   Printf.fprintf oc "\t.long\t0x40490fdb\n";
   Printf.fprintf oc "min_caml_half_pi:\n";
@@ -482,6 +484,8 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.long\t0x00000000\n";
   Printf.fprintf oc "min_caml_float_1:\n";
   Printf.fprintf oc "\t.long\t0x3f800000\n";
+  Printf.fprintf oc "min_caml_float_2:\n";
+  Printf.fprintf oc "\t.long\t0x40000000\n";
   Printf.fprintf oc "min_caml_float_minus_1:\n";
   Printf.fprintf oc "\t.long\t0xbf800000\n";
   Printf.fprintf oc "min_caml_float_half:\n";
