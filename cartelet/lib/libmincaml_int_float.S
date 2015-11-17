@@ -30,7 +30,6 @@ min_caml_int_of_float_after_flag:
 	ld	-1(%r29) %r2
 	addiu32	%r10 %r0 $0x4b000000
 	sub	%r2 %r2 %r10
-	nop
 	# FLAGの調整
 	beq	%r8 %r0 min_caml_int_of_float_small_positive
 	sub	%r2 %r0 %r2
