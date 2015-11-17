@@ -63,7 +63,6 @@ let reg_tmp = "%r25"
 let reg_ftmp = "%f31"
 let reg_hp = "%r28" (* heap pointer (caml2html: sparcasm_reghp) *) (* MIPSÅª¤Ë¤Ïgrobal pointer *)
 let reg_sp = "%r29" (* stack pointer *)
-let reg_fp = "%r30" (* frame pointer *)
 let reg_ra = "%r31" (* return address *)
 let is_reg x = (x.[0] = '%')
 
