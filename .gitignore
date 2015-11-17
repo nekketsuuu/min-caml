@@ -71,7 +71,10 @@
 
 # some files for debugging
 /cartelet/ocamld
-/cartelet/lib/test/*
+/cartelet/lib/test/
+!/cartelet/lib/test/*.s
+!/cartelet/lib/test/*.c
+!/cartelet/lib/test/*.plt
 
 # Backup files
 *~
