@@ -69,8 +69,7 @@ min_caml_float_of_int:
 	beq	%r8 %r0 min_caml_float_of_int_flag_positive
 	addi	%r9 %r0 $1
 	sub	%r11 %r0 %r2
-	addi	%r10 %r0 min_caml_float_of_int_after_flag
-	jr	%r10
+	beq	%r0 %r0 min_caml_float_of_int_after_flag
 min_caml_float_of_int_flag_positive:
 	addi	%r9 %r0 $0
 	add	%r11 %r0 %r2

@@ -7,8 +7,7 @@ min_caml_atan:
 	fslt	%f0 %f1
 	bclt	min_caml_atan_flag_negative
 	addi	%r8 %r0 $0
-	addi	%r9 %r0 min_caml_atan_after_flag
-	jr	%r9
+	beq	%r0 %r0 min_caml_atan_after_flag
 min_caml_atan_flag_negative:
 	addi	%r8 %r0 $1
 	fabs	%f0 %f0

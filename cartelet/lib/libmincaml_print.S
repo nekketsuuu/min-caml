@@ -60,8 +60,7 @@ min_caml_print_int_loop:
 	beq	%r2 %r0 min_caml_print_int_send
 	addi	%r12 %r12 $-1
 	beq	%r12 %r0 min_caml_print_int_loop_exit
-	addi	%r13 %r0 min_caml_print_int_loop
-	jr	%r13
+	beq	%r0 %r0 min_caml_print_int_loop
 min_caml_print_int_loop_exit:
 	# rest 2 digits
 	# r2: x/(10^7), r8: upper 4 bytes ASCII, r9: lower 4 bytes ASCII
