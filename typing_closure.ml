@@ -264,4 +264,7 @@ let f prog =
     with Unify _ -> failwith "top level does not have type unit");
   extenv := M.map deref_typ !extenv;
   let prog' = deref_prog (Prog(fundefs, e)) in
-  prog = prog'
+  prog'
+
+let compare prog =
+  prog = f prog
