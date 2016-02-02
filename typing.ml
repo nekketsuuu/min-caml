@@ -119,10 +119,29 @@ let rec g env e = (* 型推論ルーチン (caml2html: typing_g) *)
     | Var(x) when M.mem x env -> M.find x env (* 変数の型推論 (caml2html: typing_var) *)
     | Var(x) when M.mem x !extenv -> M.find x !extenv
     | Var(x) -> (* 外部変数の型推論 (caml2html: typing_extvar) *)
-	Format.eprintf "free variable %s assumed as external@." x;
-	let t = Type.gentyp () in
-	extenv := M.add x t !extenv;
-	t
+        let t = ref Type.Unit in
+	(match x with
+	 | "fabs" | "abs_float" | "sqrt" | "floor" | "cos" | "sin" | "atan"
+           -> t := Type.Fun([Type.Float], Type.Float)
+	 | "int_of_float" | "truncate"
+           -> t := Type.Fun([Type.Float], Type.Int)
+	 | "float_of_int"
+	   -> t := Type.Fun([Type.Int], Type.Float)
+	 | "print_newline"
+	   -> t := Type.Fun([Type.Unit], Type.Unit)
+	 | "print_int"
+	   -> t := Type.Fun([Type.Int], Type.Unit)
+	 | "print_float"
+	   -> t := Type.Fun([Type.Float], Type.Unit)
+	 | "read_int"
+	   -> t := Type.Fun([Type.Unit], Type.Int)
+	 | "read_float"
+	   -> t := Type.Fun([Type.Unit], Type.Float)
+	 | _ ->
+	    (Format.eprintf "free variable %s assumed as external@." x;
+	     t := Type.gentyp ()));
+	extenv := M.add x !t !extenv;
+	!t
     | LetRec({ name = (x, t); args = yts; body = e1 }, e2) -> (* let recの型推論 (caml2html: typing_letrec) *)
 	let env = M.add x t env in
 	unify t (Type.Fun(List.map snd yts, g (M.add_list yts env) e1));
