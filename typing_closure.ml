@@ -218,7 +218,9 @@ let g_fundef env { name = (Id.L str, t1);
 		   formal_fv = xts2;
 		   body = e } =
   let env = M.add (convert_label str) t1 env in
-  let env = M.add_list xts2 env in
+  let (xts3, xts4) = List.partition (fun (x, t) -> M.mem x env) xts2 in
+  ignore (List.map (fun (x, t) -> unify t (M.find x env)) xts3);
+  let env = M.add_list xts4 env in
   let env = M.add_list xts1 env in
   let t2 = g env e in
   (try unify (M.find (convert_label str) env) (Type.Fun(List.map snd xts1, t2))
@@ -262,5 +264,4 @@ let f prog =
     with Unify _ -> failwith "top level does not have type unit");
   extenv := M.map deref_typ !extenv;
   let prog' = deref_prog (Prog(fundefs, e)) in
-  if prog = prog' then Prog([], Unit)
-  else prog'
+  prog = prog'
