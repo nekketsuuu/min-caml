@@ -1,0 +1,53 @@
+#load "s.cmo";;
+#load "m.cmo";;
+#load "id.cmo";;
+#load "syntax.cmo";;
+#load "type.cmo";;
+#load "lexer.cmo";;
+#load "parser.cmo";;
+#load "typing.cmo";;
+#load "kNormal.cmo";;
+#load "closure.cmo";;
+
+let parse file = 
+    let inchan = open_in (file ^ ".ml") in
+    Id.counter := 0;
+    Typing.extenv := M.empty;
+    let result = Parser.exp Lexer.token (Lexing.from_channel inchan) in
+    close_in inchan;
+    result;;
+
+let knormal file = KNormal.f (Typing.f (parse file));;
+
+let clos file = Closure.f (knormal file);;
+
+#mod_use "typing_closure.ml";;
+
+let tc file = Typing_closure.f (clos file);;
+let tcc file = Typing_closure.compare (clos file);;
+
+let file_lst = ["ack"; "adder"; "cls-bug"; "cls-bug2"; "cls-rec"; "even-odd";
+		"fib"; "fib_float"; "float"; "funcomp"; "gcd";
+		"inprod-loop"; "inprod-rec"; "inprod"; "join-reg"; "join-reg2";
+		"join-stack"; "join-stack2"; "join-stack3";
+		"matmul-flat"; "matmul"; "non-tail-if"; "non-tail-if2";
+		"print"; "shuffle"; "spill"; "spill2"; "spill3";
+		"sum-tail"; "sum"; "tarai"];;
+
+exception Type_not_match of string;;
+
+let check_tc () =
+  let rec check_tc' = function
+    | [] -> Printf.printf "Check successed!\n"
+    | str :: l ->
+       (Printf.printf "### %s ###\n" str;
+	if tcc ("test/" ^ str) then check_tc' l
+	else raise (Type_not_match(str)))
+  in check_tc' file_lst;;
+
+let () =
+    Printf.printf "Note: .ocamlinit loaded\n";
+    Printf.printf "You can use these functions below (string is filename):\n";
+    Printf.printf "\tclos\t: string -> Closure.prog\n";
+    Printf.printf "\ttc\t: string -> Closure.prog\n";
+    Printf.printf "\tcheck_tc\t: unit -> unit\n"
