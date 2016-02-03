@@ -1,0 +1,77 @@
+open Closure;;
+
+(* let多相
+let rec id x = x in
+print_int (id ((id 1) + (int_of_float (id 2.0))))
+ *)
+let error1 = Prog([
+      { name = (Id.L "id", Type.gentyp ());
+	args = [("x", Type.gentyp ())];
+	formal_fv = [];
+	body = Var("x") }],
+      MakeCls(("id", Type.gentyp ()), { entry = Id.L "id"; actual_fv = [] },
+        Let(("T1", Type.gentyp ()), Int(1),
+        Let(("T2", Type.gentyp ()), AppCls("id", ["T1"]),
+	Let(("T3", Type.gentyp ()), Float(2.0),
+        Let(("T4", Type.gentyp ()), AppCls("id", ["T3"]),
+        Let(("T5", Type.gentyp ()), AppDir(Id.L "min_caml_int_of_float", ["T4"]),
+        Let(("T6", Type.gentyp ()), Add("T2", "T5"),
+        Let(("T7", Type.gentyp ()), AppCls("id", ["T6"]),
+        AppDir(Id.L "min_caml_print_int", ["T7"]))))))))));;
+
+(* 自由変数の型が違う
+let rec f a =
+  let rec g b = a + b in
+  let rec h c = a +. c in
+  3 in
+print_int f 10
+ *)
+let error2 = Prog([
+      { name = (Id.L "f", Type.gentyp ());
+	args = [("a", Type.gentyp ())];
+	formal_fv = [];
+	body =
+          MakeCls(("g", Type.gentyp ()), { entry = Id.L "g"; actual_fv = ["a"] },
+            MakeCls(("h", Type.gentyp ()), { entry = Id.L "h"; actual_fv = ["a"] },
+              Int(3))) };
+      { name = (Id.L "g", Type.gentyp ());
+	args = [("b", Type.gentyp ())];
+	formal_fv = [("a", Type.gentyp ())];
+	body = Add("a", "b") };
+      { name = (Id.L "h", Type.gentyp ());
+	args = [("c", Type.gentyp ())];
+	formal_fv = [("a", Type.gentyp ())];
+	body = FAdd("a", "c") }],
+      MakeCls(("f", Type.gentyp()), { entry = Id.L "f"; actual_fv = [] },
+        Let(("T1", Type.gentyp ()), Int(10),
+        Let(("T2", Type.gentyp ()), AppCls("f", ["T1"]),
+        AppDir(Id.L "min_caml_print_int", ["T2"])))));;
+
+(* 配列の要素の型が異なる場合
+let rec f a = a.(a.(0)) +. a.(a.(1)) in
+let x = Array.create 5 1.0 in
+x.(0) <- 2.0;
+x.(2) <- 3.0;
+print_int (int_of_float (f x))
+ *)
+let error3 = Prog([
+      { name = (Id.L "f", Type.gentyp ());
+	args = [("a", Type.gentyp ())];
+	formal_fv = [];
+	body =
+          Let(("T1", Type.gentyp ()), Int(0),
+          Let(("T2", Type.gentyp ()), Get("a", "T1"),
+	  Let(("T3", Type.gentyp ()), Get("a", "T2"),
+	  Let(("T4", Type.gentyp ()), Int(1),
+	  Let(("T5", Type.gentyp ()), Get("a", "T4"),
+	  Let(("T6", Type.gentyp ()), Get("a", "T5"),
+	  FAdd("T3", "T6"))))))) }],
+      Let(("T7", Type.gentyp ()), Int(0),
+      Let(("T8", Type.gentyp ()), Float(2.0),
+      Let(("T9", Type.gentyp ()), Put("x", "T7", "T8"),
+      Let(("T10", Type.gentyp ()), Int(2),
+      Let(("T11", Type.gentyp ()), Float(3.0),
+      Let(("T12", Type.gentyp ()), Put("x", "T10", "T11"),
+      Let(("T13", Type.gentyp ()), AppCls("f", ["x"]),
+      Let(("T14", Type.gentyp ()), AppDir(Id.L "min_caml_int_of_float", ["T13"]),
+      AppDir(Id.L "min_caml_print_int", ["T14"]))))))))));;
